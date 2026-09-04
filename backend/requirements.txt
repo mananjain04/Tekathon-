@@ -1,0 +1,13 @@
+# Core API (already installed, listed for completeness/reproducibility)
+fastapi>=0.115
+uvicorn[standard]>=0.32
+
+# Database / migrations (Phase 1)
+sqlalchemy>=2.0.35
+psycopg[binary]>=3.2        # psycopg3 has proper Python 3.13 wheels; psycopg2-binary does not
+pgvector>=0.3.6
+alembic>=1.13.3
+pydantic-settings>=2.5
+
+# .env loading (used by pydantic-settings)
+python-dotenv>=1.0
