@@ -25,6 +25,11 @@ pymupdf>=1.24.10
 pytesseract>=0.3.13
 pillow>=10.4
 
-# Tests (Phase 2)
+# Local embedding generation (Phase 3). Pulls in torch + transformers +
+# numpy as transitive deps -- this is a large install (torch alone is a
+# few hundred MB) but runs CPU-only fine on a laptop with no NVIDIA GPU.
+sentence-transformers>=3.2.0
+
+# Tests (Phase 2/3)
 pytest>=8.3
 httpx>=0.27

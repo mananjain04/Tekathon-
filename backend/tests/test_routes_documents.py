@@ -75,13 +75,14 @@ def test_full_upload_then_process_flow(db_session, cleanup_documents, temp_stora
     assert process_resp.status_code == 200
     result = process_resp.json()
     assert result["pages_processed"] == 2
-    assert result["status"] == "OCR_COMPLETE"
+    assert result["status"] == "INDEXED"
     assert result["chunks_created"] > 0
+    assert result["chunks_embedded"] == result["chunks_created"]
 
     get_resp = client.get(f"/api/documents/{document_id}")
     assert get_resp.status_code == 200
     fetched = get_resp.json()
-    assert fetched["status"] == "OCR_COMPLETE"
+    assert fetched["status"] == "INDEXED"
     assert "storage_path" not in fetched
 
 

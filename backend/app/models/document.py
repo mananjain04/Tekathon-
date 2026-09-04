@@ -35,3 +35,4 @@ class ProcessResult(BaseModel):
     pages_processed: int
     pages_ocr: int
     chunks_created: int
+    chunks_embedded: int

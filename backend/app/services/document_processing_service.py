@@ -1,12 +1,14 @@
 """
 Orchestrates PDF processing for one document: extraction (+OCR fallback),
-page records, page-aware chunking, and document status transitions.
+page records, page-aware chunking, local embedding generation, and
+document status transitions.
 
 Kept as a plain function callable from a route today; nothing here is
 tied to being called synchronously from a request, so moving it behind a
 background worker/task queue later needs no redesign.
 """
 import uuid
+from typing import List
 
 from sqlalchemy.orm import Session
 
@@ -14,6 +16,7 @@ from app.core.config import settings
 from app.db.models import Chunk, Document, DocumentStatus, Page
 from app.services import document_service
 from app.services.chunker import approx_token_count, chunk_text
+from app.services.embedding_service import EmbeddingModelError, get_embedding_service
 from app.services.pdf_extractor import OCRUnavailableError, PDFExtractionError, extract_pages
 
 
@@ -32,6 +35,36 @@ def _reset_previous_attempt(db: Session, document_id: uuid.UUID) -> None:
     db.query(Chunk).filter(Chunk.document_id == document_id).delete(synchronize_session=False)
     db.query(Page).filter(Page.document_id == document_id).delete(synchronize_session=False)
     db.flush()
+
+
+def _embed_chunks(db: Session, chunks: List[Chunk]) -> int:
+    """
+    Generates and stores embeddings for this document's chunks only, in
+    batches of settings.embedding_batch_size (never one chunk at a time,
+    never every chunk in the database). The model itself is loaded once
+    and reused across batches/documents via the process-wide singleton in
+    embedding_service. Returns the number of chunks embedded.
+
+    Raises EmbeddingModelError on model load/output failures -- the caller
+    wraps this into a ProcessingError so it goes through the same FAILED
+    path as an extraction failure.
+    """
+    if not chunks:
+        return 0
+
+    service = get_embedding_service()
+    batch_size = settings.embedding_batch_size
+    embedded = 0
+
+    for start in range(0, len(chunks), batch_size):
+        batch = chunks[start : start + batch_size]
+        vectors = service.embed_texts([chunk.text for chunk in batch])
+        for chunk, vector in zip(batch, vectors):
+            chunk.embedding = vector
+        db.flush()
+        embedded += len(batch)
+
+    return embedded
 
 
 def process_document(db: Session, document_id: uuid.UUID):
@@ -69,6 +102,7 @@ def process_document(db: Session, document_id: uuid.UUID):
 
         pages_ocr = 0
         chunks_created = 0
+        chunk_rows: List[Chunk] = []
 
         for extracted in pages:
             page_row = Page(
@@ -85,21 +119,44 @@ def process_document(db: Session, document_id: uuid.UUID):
 
             spans = chunk_text(extracted.text, chunk_size=settings.chunk_size, chunk_overlap=settings.chunk_overlap)
             for index, span in enumerate(spans):
-                db.add(
-                    Chunk(
-                        document_id=document.id,
-                        page_id=page_row.id,
-                        page_number=extracted.page_number,
-                        chunk_index=index,
-                        text=span.text,
-                        token_count=approx_token_count(span.text),
-                        chunk_metadata={"start_char": span.start_char, "end_char": span.end_char},
-                    )
+                chunk_row = Chunk(
+                    document_id=document.id,
+                    page_id=page_row.id,
+                    page_number=extracted.page_number,
+                    chunk_index=index,
+                    text=span.text,
+                    token_count=approx_token_count(span.text),
+                    chunk_metadata={"start_char": span.start_char, "end_char": span.end_char},
                 )
+                db.add(chunk_row)
+                chunk_rows.append(chunk_row)
                 chunks_created += 1
 
         document.status = DocumentStatus.OCR_COMPLETE
         document.page_count = len(pages)
+        document.error_message = None
+        db.commit()
+
+        # --- Phase 3: local embedding generation ---
+        document.status = DocumentStatus.EMBEDDING
+        db.commit()
+
+        # The OCR_COMPLETE commit above expires chunk_rows' attributes
+        # (SQLAlchemy's default expire_on_commit) -- re-query once here
+        # rather than triggering a lazy-load SELECT per chunk below.
+        chunk_rows = (
+            db.query(Chunk)
+            .filter(Chunk.document_id == document.id)
+            .order_by(Chunk.page_number, Chunk.chunk_index)
+            .all()
+        )
+
+        try:
+            chunks_embedded = _embed_chunks(db, chunk_rows)
+        except EmbeddingModelError as exc:
+            raise ProcessingError(f"Embedding generation failed: {exc}") from exc
+
+        document.status = DocumentStatus.INDEXED
         document.error_message = None
         db.commit()
 
@@ -109,6 +166,7 @@ def process_document(db: Session, document_id: uuid.UUID):
             "pages_processed": len(pages),
             "pages_ocr": pages_ocr,
             "chunks_created": chunks_created,
+            "chunks_embedded": chunks_embedded,
         }
 
     except ProcessingError as exc:

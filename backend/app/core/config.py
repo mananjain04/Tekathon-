@@ -41,9 +41,22 @@ class Settings(BaseSettings):
     # pytesseract looks for "tesseract" on PATH.
     tesseract_cmd: Optional[str] = None
 
-    # --- Embeddings / models (used from Phase 4 onward) ---
+    # --- Embeddings (Phase 3) ---
     embedding_dim: int = 384
     embedding_model_name: str = "all-MiniLM-L6-v2"
+    # "auto" picks CUDA if available, else CPU -- same code runs on this
+    # laptop (CPU-only) and a teammate's GPU machine unmodified.
+    embedding_device: str = "auto"
+    embedding_batch_size: int = 32
+    # Optional override for where sentence-transformers caches the
+    # downloaded model. Left unset, it uses the HF default (~/.cache).
+    embedding_cache_dir: Optional[str] = None
+    # Set true before an offline demo (once the model is already cached)
+    # to guarantee sentence-transformers/huggingface_hub make zero network
+    # calls, including update checks.
+    embedding_offline_mode: bool = False
+
+    # --- Reranker (used from Phase 6 onward) ---
     reranker_model_name: str = "cross-encoder/ms-marco-MiniLM-L-6-v2"
 
     # --- LLM provider (used from Phase 7/8 onward) ---

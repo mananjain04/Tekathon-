@@ -58,13 +58,14 @@ def test_processing_creates_one_page_row_per_pdf_page(db_session, cleanup_docume
 
     assert result["pages_processed"] == 2
     assert result["chunks_created"] > 0
+    assert result["chunks_embedded"] == result["chunks_created"]
 
     pages = db_session.query(Page).filter(Page.document_id == document.id).order_by(Page.page_number).all()
     assert [p.page_number for p in pages] == [1, 2]
     assert all(p.ocr_used is False for p in pages)  # plenty of normal text, OCR never triggered
 
     db_session.refresh(document)
-    assert document.status == DocumentStatus.OCR_COMPLETE
+    assert document.status == DocumentStatus.INDEXED
     assert document.page_count == 2
     assert document.error_message is None
 
@@ -100,6 +101,11 @@ def test_processing_creates_page_aware_chunks_that_never_cross_pages(db_session,
     assert [c.chunk_index for c in page1_chunks] == list(range(len(page1_chunks)))
     assert [c.chunk_index for c in page2_chunks] == list(range(len(page2_chunks)))
 
+    # Phase 3: every chunk has a stored 384-dim embedding.
+    for chunk in chunks:
+        assert chunk.embedding is not None
+        assert len(chunk.embedding) == 384
+
 
 def test_reprocessing_does_not_duplicate_rows(db_session, cleanup_documents, temp_storage):
     document = _create_test_document(
@@ -118,6 +124,13 @@ def test_reprocessing_does_not_duplicate_rows(db_session, cleanup_documents, tem
 
     assert second_pages == first_pages
     assert second_chunks == first_chunks
+
+    # Phase 3: reprocessing re-embeds cleanly -- no leftover/duplicate/null vectors.
+    reprocessed_chunks = db_session.query(Chunk).filter(Chunk.document_id == document.id).all()
+    assert all(c.embedding is not None and len(c.embedding) == 384 for c in reprocessed_chunks)
+
+    db_session.refresh(document)
+    assert document.status == DocumentStatus.INDEXED
 
 
 def test_missing_stored_file_results_in_failed_status(db_session, cleanup_documents, temp_storage):
@@ -158,9 +171,10 @@ def test_retrying_a_failed_document_can_succeed(db_session, cleanup_documents, t
     result = document_processing_service.process_document(db_session, document.id)
 
     db_session.refresh(document)
-    assert document.status == DocumentStatus.OCR_COMPLETE
+    assert document.status == DocumentStatus.INDEXED
     assert document.error_message is None
     assert result["pages_processed"] == 1
+    assert result["chunks_embedded"] == result["chunks_created"]
 
 
 def test_processing_unknown_document_raises_not_found(db_session):
@@ -168,3 +182,39 @@ def test_processing_unknown_document_raises_not_found(db_session):
 
     with pytest.raises(document_service.DocumentNotFoundError):
         document_processing_service.process_document(db_session, uuid.uuid4())
+
+
+def test_embedding_failure_transitions_document_to_failed(db_session, cleanup_documents, temp_storage, monkeypatch):
+    """
+    If embedding generation blows up (model load failure, bad output, etc.)
+    the document must land on FAILED with a useful error_message -- not get
+    stuck in EMBEDDING, and not silently report success.
+    """
+    import app.services.embedding_service as es
+
+    def broken_loader(model_name, device, cache_folder):
+        raise RuntimeError("simulated embedding model failure")
+
+    monkeypatch.setattr(es, "_load_sentence_transformer", broken_loader)
+    es.reset_embedding_service()
+
+    document = _create_test_document(
+        db_session, "embedding_will_fail.pdf", ["Plenty of extractable text content for this test to chunk."]
+    )
+    cleanup_documents.append(document.id)
+
+    with pytest.raises(document_processing_service.ProcessingError, match="Embedding generation failed"):
+        document_processing_service.process_document(db_session, document.id)
+
+    db_session.refresh(document)
+    assert document.status == DocumentStatus.FAILED
+    assert document.error_message is not None
+    assert "Embedding generation failed" in document.error_message
+
+    # Pages/chunks from the (otherwise successful) extraction/chunking
+    # stage are still present -- only the embedding step failed -- but no
+    # chunk was left with a corrupt/partial vector.
+    chunks = db_session.query(Chunk).filter(Chunk.document_id == document.id).all()
+    assert all(c.embedding is None for c in chunks)
+
+    es.reset_embedding_service()
