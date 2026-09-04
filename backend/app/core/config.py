@@ -59,6 +59,10 @@ class Settings(BaseSettings):
     # --- Reranker (used from Phase 6 onward) ---
     reranker_model_name: str = "cross-encoder/ms-marco-MiniLM-L-6-v2"
 
+    # --- Retrieval (Phase 4A: vector search only, no reranking yet) ---
+    retrieval_top_k_default: int = 10
+    retrieval_top_k_max: int = 100
+
     # --- LLM provider (used from Phase 7/8 onward) ---
     llm_provider: str = "groq"
     groq_api_key: Optional[str] = None

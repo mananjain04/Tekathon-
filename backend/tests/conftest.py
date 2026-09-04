@@ -13,7 +13,7 @@ import pytest
 
 from app.core.config import settings
 from app.db.database import SessionLocal
-from app.db.models import Document
+from app.db.models import Chunk, Document, DocumentStatus, Page
 from app.services import embedding_service
 
 
@@ -89,3 +89,63 @@ def fake_embedding_model(request, monkeypatch):
     embedding_service.reset_embedding_service()
     yield
     embedding_service.reset_embedding_service()
+
+
+@pytest.fixture()
+def indexed_chunk_factory(db_session, cleanup_documents):
+    """
+    Factory fixture for retrieval tests: creates a Document/Page/Chunk
+    directly (skipping the whole upload/extract/chunk/embed pipeline)
+    with a caller-controlled embedding vector, so retrieval ranking can be
+    tested against exact, known cosine distances instead of depending on
+    the fake model's per-text-hash vectors. Commits (not just flushes) so
+    the rows are visible to a *different* session/connection too -- needed
+    for route-level tests that go through FastAPI's own `get_db` session.
+
+    Usage: indexed_chunk_factory(text, embedding, ...) -> (document, chunk)
+    Pass an existing document's id via document_id= to add another chunk
+    to the same document instead of creating a new one each call.
+    """
+
+    def _make(
+        text,
+        embedding,
+        *,
+        document_id=None,
+        page_number=1,
+        chunk_index=0,
+        status=DocumentStatus.INDEXED,
+    ):
+        if document_id is None:
+            document = Document(
+                filename="retrieval_test.pdf",
+                storage_path="retrieval_test.pdf",
+                content_type="application/pdf",
+                status=status,
+            )
+            db_session.add(document)
+            db_session.flush()
+            cleanup_documents.append(document.id)
+        else:
+            document = db_session.get(Document, document_id)
+
+        page = Page(document_id=document.id, page_number=page_number, text=text, ocr_used=False)
+        db_session.add(page)
+        db_session.flush()
+
+        chunk = Chunk(
+            document_id=document.id,
+            page_id=page.id,
+            page_number=page_number,
+            chunk_index=chunk_index,
+            text=text,
+            token_count=len(text.split()) or None,
+            chunk_metadata={},
+            embedding=embedding,
+        )
+        db_session.add(chunk)
+        db_session.commit()
+        db_session.refresh(chunk)
+        return document, chunk
+
+    return _make
