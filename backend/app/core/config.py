@@ -26,6 +26,21 @@ class Settings(BaseSettings):
     storage_dir: str = "storage"
     max_upload_size_mb: int = 50
 
+    # --- Chunking (Phase 2) ---
+    chunk_size: int = 800
+    chunk_overlap: int = 150
+
+    # --- PDF extraction / OCR (Phase 2) ---
+    # Minimum characters of normal-extracted text a page must have before
+    # it is considered "meaningful" (i.e. skips the OCR fallback).
+    ocr_text_threshold: int = 20
+    # DPI used when rendering a page to an image for OCR.
+    ocr_render_dpi: int = 200
+    # Optional path to the Tesseract executable (Windows usually needs this,
+    # e.g. C:\\Program Files\\Tesseract-OCR\\tesseract.exe). Left unset,
+    # pytesseract looks for "tesseract" on PATH.
+    tesseract_cmd: Optional[str] = None
+
     # --- Embeddings / models (used from Phase 4 onward) ---
     embedding_dim: int = 384
     embedding_model_name: str = "all-MiniLM-L6-v2"
