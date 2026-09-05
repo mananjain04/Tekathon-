@@ -101,6 +101,19 @@ class Settings(BaseSettings):
     # None lets llama.cpp pick a sensible default thread count.
     llm_threads: Optional[int] = None
 
+    # --- Security / Authentication (Phase 1) ---
+    # IMPORTANT: Set JWT_SECRET_KEY to a strong random value in .env.
+    # Generate one with: python -c "import secrets; print(secrets.token_hex(32))"
+    # Never use the default in production.
+    jwt_secret_key: str = "CHANGE_ME_generate_with_secrets_token_hex_32"
+    jwt_access_token_expire_minutes: int = 60
+
+    # --- RAG Output Validation (Phase 4) ---
+    # Minimum cosine similarity (0.0–1.0) for retrieved chunks to be considered
+    # sufficient evidence. Queries where all chunks score below this threshold
+    # return an explicit "insufficient evidence" response without calling the LLM.
+    rag_min_similarity_threshold: float = 0.1
+
     # --- Ollama provider (llm_provider = "ollama") ---
     # Base URL of the local Ollama server. Never set to an external/cloud URL --
     # KAVACH requires 100% local inference. After `ollama pull <model>`, this

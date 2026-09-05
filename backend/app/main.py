@@ -4,7 +4,10 @@ from sqlalchemy import text
 from sqlalchemy.orm import Session
 
 from app.db.database import get_db
-from app.routes import documents, rag, retrieval
+from app.routes import auth, documents, rag, retrieval
+# Import user_models so SQLAlchemy/Alembic sees the User table
+import app.db.user_models  # noqa: F401
+
 
 app = FastAPI(
     title="SIH AI Backend",
@@ -22,6 +25,7 @@ app.add_middleware(
 )
 
 
+app.include_router(auth.router)
 app.include_router(documents.router)
 app.include_router(retrieval.router)
 app.include_router(rag.router)
