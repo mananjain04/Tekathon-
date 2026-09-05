@@ -56,10 +56,24 @@ class Settings(BaseSettings):
     # calls, including update checks.
     embedding_offline_mode: bool = False
 
-    # --- Reranker (used from Phase 6 onward) ---
+    # --- Reranker (Phase 4B: cross-encoder re-ranking over Phase 4A's
+    # vector-retrieved candidates) ---
     reranker_model_name: str = "cross-encoder/ms-marco-MiniLM-L-6-v2"
+    # "auto" picks CUDA if available, else CPU -- same convention as
+    # embedding_device above.
+    reranker_device: str = "auto"
+    reranker_batch_size: int = 16
+    # Optional override for where sentence-transformers caches the
+    # downloaded cross-encoder model. Left unset, it uses the HF default.
+    reranker_cache_dir: Optional[str] = None
+    # Set true before an offline demo (once the model is already cached)
+    # to guarantee sentence-transformers/huggingface_hub make zero network
+    # calls, including update checks. Independent of embedding_offline_mode
+    # since the two models can be cached/verified at different times.
+    reranker_offline_mode: bool = False
 
-    # --- Retrieval (Phase 4A: vector search only, no reranking yet) ---
+    # --- Retrieval (Phase 4A: pgvector search; Phase 4B: optional
+    # cross-encoder re-ranking of the same candidates) ---
     retrieval_top_k_default: int = 10
     retrieval_top_k_max: int = 100
 

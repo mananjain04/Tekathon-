@@ -13,7 +13,7 @@ import numpy as np
 import pytest
 
 from app.db.models import DocumentStatus
-from app.services import embedding_service, retrieval_service
+from app.services import embedding_service, reranker_service, retrieval_service
 from app.services.retrieval_service import RetrievalError
 
 
@@ -170,3 +170,104 @@ def test_query_embedding_failure_raises_retrieval_error(db_session, monkeypatch)
         retrieval_service.search(db_session, "this will fail to embed", top_k=5)
 
     embedding_service.reset_embedding_service()
+
+
+# ---------------------------------------------------------------------------
+# Phase 4B: search_with_rerank() orchestration (vector retrieval unchanged,
+# then an additive cross-encoder re-ranking pass).
+# ---------------------------------------------------------------------------
+
+
+class _ControlledCrossEncoder:
+    """Predict() with caller-controlled, pair-keyed scores (see test_reranker_service.py)."""
+
+    def __init__(self, score_by_pair):
+        self._score_by_pair = score_by_pair
+
+    def predict(self, pairs, batch_size=None, show_progress_bar=False):
+        return [self._score_by_pair[pair] for pair in pairs]
+
+
+def test_search_with_rerank_reorders_by_cross_encoder_score(db_session, indexed_chunk_factory, monkeypatch):
+    query = "anything"
+    query_vector = _unit_vector(0)
+    monkeypatch.setattr(retrieval_service, "get_embedding_service", lambda: _FixedVectorService(query_vector))
+
+    # pgvector ranks these best-first as: closer, mid, farther (all
+    # roughly similar direction so vector order alone wouldn't put the
+    # true best match first) -- the cross-encoder then flips that order.
+    _, chunk_closer = indexed_chunk_factory("Somewhat related text", _unit_vector(0), chunk_index=0)
+    _, chunk_mid = indexed_chunk_factory("The most relevant passage", (np.array(_unit_vector(0)) * 0.99 + np.array(_unit_vector(1)) * 0.01).tolist(), chunk_index=1)
+    _, chunk_far = indexed_chunk_factory("Barely related text", (np.array(_unit_vector(0)) * 0.98 + np.array(_unit_vector(1)) * 0.02).tolist(), chunk_index=2)
+
+    vector_ranked = retrieval_service.search(db_session, query, top_k=10)
+    assert [r["chunk_id"] for r in vector_ranked] == [chunk_closer.id, chunk_mid.id, chunk_far.id]
+
+    fake_cross_encoder = _ControlledCrossEncoder(
+        {
+            (query, "Somewhat related text"): 0.1,
+            (query, "The most relevant passage"): 9.0,
+            (query, "Barely related text"): -3.0,
+        }
+    )
+    monkeypatch.setattr(
+        reranker_service.get_reranker_service(), "_get_model", lambda: fake_cross_encoder
+    )
+
+    reranked = retrieval_service.search_with_rerank(db_session, query, top_k=10, rerank=True)
+
+    assert [r["chunk_id"] for r in reranked] == [chunk_mid.id, chunk_closer.id, chunk_far.id]
+    assert reranked[0]["rerank_score"] == 9.0
+    # Original vector-search metadata (similarity/distance/page/etc.) is preserved.
+    assert reranked[0]["document_id"] is not None
+    assert reranked[0]["chunk_index"] == 1
+
+
+def test_search_with_rerank_false_skips_reranking_and_sets_score_none(
+    db_session, indexed_chunk_factory, monkeypatch
+):
+    query_vector = _unit_vector(0)
+    monkeypatch.setattr(retrieval_service, "get_embedding_service", lambda: _FixedVectorService(query_vector))
+    indexed_chunk_factory("Some chunk", query_vector, chunk_index=0)
+
+    called = {"reranked": False}
+
+    def fail_if_called(*args, **kwargs):
+        called["reranked"] = True
+        raise AssertionError("reranker should not be invoked when rerank=False")
+
+    monkeypatch.setattr(reranker_service, "get_reranker_service", fail_if_called)
+
+    results = retrieval_service.search_with_rerank(db_session, "anything", top_k=5, rerank=False)
+
+    assert called["reranked"] is False
+    assert all(r["rerank_score"] is None for r in results)
+
+
+def test_search_with_rerank_on_empty_results_returns_empty_list_without_loading_reranker(
+    db_session, monkeypatch
+):
+    def fail_if_called(*args, **kwargs):
+        raise AssertionError("reranker should not be invoked when there are no candidates")
+
+    monkeypatch.setattr(reranker_service, "get_reranker_service", fail_if_called)
+
+    results = retrieval_service.search_with_rerank(db_session, "nothing indexed yet", top_k=5, rerank=True)
+
+    assert results == []
+
+
+def test_search_with_rerank_wraps_reranker_model_error_as_retrieval_error(
+    db_session, indexed_chunk_factory, monkeypatch
+):
+    query_vector = _unit_vector(0)
+    monkeypatch.setattr(retrieval_service, "get_embedding_service", lambda: _FixedVectorService(query_vector))
+    indexed_chunk_factory("Some chunk", query_vector, chunk_index=0)
+
+    def broken_get_service():
+        raise reranker_service.RerankerModelError("simulated cross-encoder failure")
+
+    monkeypatch.setattr(reranker_service, "get_reranker_service", broken_get_service)
+
+    with pytest.raises(RetrievalError, match="Re-ranking failed"):
+        retrieval_service.search_with_rerank(db_session, "anything", top_k=5, rerank=True)

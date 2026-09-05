@@ -84,3 +84,44 @@ def test_search_route_exposed_in_openapi_schema():
     schema = resp.json()
     assert "/api/retrieval/search" in schema["paths"]
     assert "post" in schema["paths"]["/api/retrieval/search"]
+
+
+# ---------------------------------------------------------------------------
+# Phase 4B: cross-encoder re-ranking via the same route (request.rerank,
+# response.reranked / result.rerank_score). All of the above Phase 4A tests
+# still pass unmodified since rerank defaults to true and the autouse fake
+# cross-encoder (conftest.py) keeps them offline and fast.
+# ---------------------------------------------------------------------------
+
+
+def test_search_route_default_reranks_and_attaches_score(indexed_chunk_factory, monkeypatch):
+    query_vector = _unit_vector(0)
+    monkeypatch.setattr(retrieval_service, "get_embedding_service", lambda: _FixedVectorService(query_vector))
+    indexed_chunk_factory("The leave policy allows fifteen days of paid leave.", query_vector)
+
+    resp = client.post("/api/retrieval/search", json={"query": "leave policy", "top_k": 5})
+    assert resp.status_code == 200
+    body = resp.json()
+
+    assert body["reranked"] is True
+    assert len(body["results"]) == 1
+    assert isinstance(body["results"][0]["rerank_score"], float)
+
+
+def test_search_route_rerank_false_returns_null_rerank_score(indexed_chunk_factory, monkeypatch):
+    query_vector = _unit_vector(0)
+    monkeypatch.setattr(retrieval_service, "get_embedding_service", lambda: _FixedVectorService(query_vector))
+    indexed_chunk_factory("Some chunk text", query_vector)
+
+    resp = client.post("/api/retrieval/search", json={"query": "anything", "top_k": 5, "rerank": False})
+    assert resp.status_code == 200
+    body = resp.json()
+
+    assert body["reranked"] is False
+    assert all(r["rerank_score"] is None for r in body["results"])
+
+
+def test_search_route_rerank_field_defaults_to_true_when_omitted():
+    resp = client.post("/api/retrieval/search", json={"query": "anything", "top_k": 5})
+    assert resp.status_code == 200
+    assert resp.json()["reranked"] is True

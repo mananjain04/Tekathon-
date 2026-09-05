@@ -14,7 +14,7 @@ import pytest
 from app.core.config import settings
 from app.db.database import SessionLocal
 from app.db.models import Chunk, Document, DocumentStatus, Page
-from app.services import embedding_service
+from app.services import embedding_service, reranker_service
 
 
 @pytest.fixture()
@@ -89,6 +89,51 @@ def fake_embedding_model(request, monkeypatch):
     embedding_service.reset_embedding_service()
     yield
     embedding_service.reset_embedding_service()
+
+
+class _FakeCrossEncoder:
+    """
+    Deterministic stand-in for a real CrossEncoder: given a list of
+    (query, text) pairs, returns a score derived from a hash of each pair
+    -- correct interface shape (predict(pairs) -> a sequence of floats),
+    without loading torch/transformers or touching the network. Good
+    enough to exercise reranker orchestration, sorting, and error
+    handling; not a substitute for the real cross-encoder's semantic
+    relevance judgments (see test_reranker_service.py's one real-model
+    test for that).
+    """
+
+    def predict(self, pairs, batch_size=None, show_progress_bar=False):
+        scores = []
+        for query, text in pairs:
+            rng = np.random.default_rng(abs(hash((query, text))) % (2**32))
+            scores.append(float(rng.uniform(-10.0, 10.0)))
+        return np.array(scores)
+
+
+@pytest.fixture(autouse=True)
+def fake_cross_encoder_model(request, monkeypatch):
+    """
+    Patches the one seam reranker_service.py exposes for this purpose
+    (_load_cross_encoder) with a fast deterministic fake, for every test
+    by default -- so the whole suite (including retrieval route tests,
+    which now go through re-ranking by default) runs offline and fast,
+    with no dependency on downloading cross-encoder/ms-marco-MiniLM-L-6-v2.
+    The one test that needs the real model opts out with
+    @pytest.mark.real_reranker_model.
+    """
+    if request.node.get_closest_marker("real_reranker_model"):
+        yield
+        return
+
+    monkeypatch.setattr(
+        reranker_service,
+        "_load_cross_encoder",
+        lambda model_name, device, cache_folder: _FakeCrossEncoder(),
+    )
+    reranker_service.reset_reranker_service()
+    yield
+    reranker_service.reset_reranker_service()
 
 
 @pytest.fixture()
