@@ -78,10 +78,13 @@ class Settings(BaseSettings):
     retrieval_top_k_default: int = 10
     retrieval_top_k_max: int = 100
 
-    # --- Local LLM (Phase 5A: llama.cpp / GGUF, fully offline) ---
-    # "llama_cpp" is currently the only supported provider -- no cloud/hosted
-    # provider is implemented, by design (see backend/docs/PHASE5.md).
-    llm_provider: str = "llama_cpp"
+    # --- Local LLM provider selection ---
+    # Supported values: "llama_cpp" (GGUF via llama-cpp-python) or "ollama"
+    # (local Ollama server -- recommended for Windows, no compilation needed).
+    # See backend/docs/PHASE5.md (llama_cpp) or backend/docs/OLLAMA.md (ollama).
+    llm_provider: str = "ollama"
+
+    # --- llama.cpp / GGUF provider (llm_provider = "llama_cpp") ---
     # Path to a local GGUF model file (e.g. Qwen3-4B-Instruct-2507, Q4_K_M
     # quantization). Left unset, llm_service.py raises a clear LLMModelError
     # on first use rather than crashing at startup -- the model is NEVER
@@ -97,6 +100,20 @@ class Settings(BaseSettings):
     llm_gpu_layers: int = 0
     # None lets llama.cpp pick a sensible default thread count.
     llm_threads: Optional[int] = None
+
+    # --- Ollama provider (llm_provider = "ollama") ---
+    # Base URL of the local Ollama server. Never set to an external/cloud URL --
+    # KAVACH requires 100% local inference. After `ollama pull <model>`, this
+    # operates entirely without Internet access.
+    ollama_base_url: str = "http://localhost:11434"
+    # Model tag to use for RAG generation. Must be pulled locally first via
+    # `ollama pull <model>`. Defaults to "qwen2.5:latest" (standard tag when running
+    # `ollama pull qwen2.5`). Can also be "qwen2.5:7b", "llama3.2:latest", etc.
+    # Configurable via .env OLLAMA_MODEL.
+    ollama_model: str = "qwen2.5:latest"
+    # Seconds before an Ollama HTTP request is considered timed out.
+    # Increase on slower hardware where model first-load takes longer.
+    ollama_timeout: float = 120.0
 
     @field_validator("llm_threads", mode="before")
     @classmethod

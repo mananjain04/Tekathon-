@@ -24,3 +24,10 @@ backend/storage/*
 
 # Local LLM model files (never committed -- see backend/docs/PHASE5.md)
 *.gguf
+
+# Temporary files & test caches
+~$*
+.pytest_cache/
+backend/.pytest_cache/
+RAG_Chatbot/
+

@@ -130,15 +130,16 @@ def test_empty_retrieval_result_still_returns_200_with_empty_sources(monkeypatch
 
 def test_missing_llm_model_returns_400_not_a_fake_answer(monkeypatch):
     """
-    When the local LLM is unavailable (no model configured/missing file),
-    the route must return a clear application-level error -- never a
-    fabricated 200 answer. This exercises the route's real fallback to the
-    process-wide LLMService singleton (no get_llm_service monkeypatch),
-    with LLM_MODEL_PATH left unset.
+    When the local LLM is unavailable the route must return a clear
+    application-level error -- never a fabricated 200 answer.
+    This exercises the llama_cpp provider with LLM_MODEL_PATH unset,
+    confirming it surfaces as a 400 at the HTTP layer.
+    (Ollama connection-failure -> 400 is covered by test_ollama_provider.py.)
     """
     from app.core.config import settings
 
     monkeypatch.setattr(rag_service_module, "search_with_rerank", lambda db, query, top_k=None, rerank=True: [])
+    monkeypatch.setattr(settings, "llm_provider", "llama_cpp")
     monkeypatch.setattr(settings, "llm_model_path", None)
     llm_service_module.reset_llm_service()
 
@@ -148,6 +149,7 @@ def test_missing_llm_model_returns_400_not_a_fake_answer(monkeypatch):
     assert "LLM" in resp.json()["detail"] or "model" in resp.json()["detail"].lower()
 
     llm_service_module.reset_llm_service()
+
 
 
 def test_retrieval_failure_returns_400(monkeypatch):

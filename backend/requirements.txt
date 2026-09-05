@@ -41,6 +41,8 @@ sentence-transformers>=3.2.0
 # rather than crashing the app.
 llama-cpp-python>=0.3.0
 
-# Tests (Phase 2/3)
-pytest>=8.3
+# HTTP client -- used by OllamaProvider (runtime) and TestClient in tests
 httpx>=0.27
+
+# Tests
+pytest>=8.3

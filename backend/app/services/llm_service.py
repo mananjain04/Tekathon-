@@ -23,8 +23,11 @@ just because the model file is missing or llama-cpp-python isn't
 installed: both failures surface only when generate() is actually called,
 as a clear LLMModelError.
 """
+import logging
 import threading
 from pathlib import Path
+
+logger = logging.getLogger(__name__)
 from typing import Optional
 
 from app.core.config import settings
@@ -158,17 +161,49 @@ class LLMService:
             raise LLMModelError(f"Local LLM returned an unexpected response shape: {result!r}") from exc
 
 
-_default_service: Optional[LLMService] = None
+_default_service = None  # Can be LLMService or OllamaProvider depending on config.
 _default_service_lock = threading.Lock()
 
 
-def get_llm_service() -> LLMService:
-    """Process-wide singleton so the model is loaded once and shared by every caller."""
+def get_llm_service():
+    """
+    Provider factory: returns a process-wide singleton LLM provider.
+
+    The concrete type depends on ``settings.llm_provider``:
+    - ``"ollama"``     → OllamaProvider (local Ollama HTTP server, recommended)
+    - ``"llama_cpp"``  → LLMService (local GGUF via llama-cpp-python)
+
+    The returned object always exposes ``.generate(prompt) -> str`` and raises
+    ``LLMModelError`` on failure -- callers (rag_service.py, tests) never need
+    to know which concrete provider is in use.
+
+    OllamaProvider is imported lazily inside this function (not at module top
+    level) to avoid a circular import: ollama_provider.py imports LLMModelError
+    from this file, and importing ollama_provider.py at module level here would
+    make the two modules mutually recursive.
+    """
     global _default_service
     if _default_service is None:
         with _default_service_lock:
             if _default_service is None:
-                _default_service = LLMService()
+                provider = settings.llm_provider.strip().lower()
+                if provider == "ollama":
+                    from app.services.ollama_provider import OllamaProvider  # lazy, see docstring
+                    logger.info(
+                        "LLM provider: Ollama (base_url=%s model=%s)",
+                        settings.ollama_base_url,
+                        settings.ollama_model,
+                    )
+                    _default_service = OllamaProvider()
+                elif provider == "llama_cpp":
+                    logger.info("LLM provider: llama.cpp (GGUF, model_path=%s)", settings.llm_model_path)
+                    _default_service = LLMService()
+                else:
+                    raise LLMModelError(
+                        f"Unknown LLM_PROVIDER '{settings.llm_provider}'. "
+                        "Supported values: 'ollama', 'llama_cpp'. "
+                        "Set LLM_PROVIDER in .env."
+                    )
     return _default_service
 
 

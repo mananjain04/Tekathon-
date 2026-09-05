@@ -157,13 +157,16 @@ def test_llm_failure_becomes_rag_error(db_session, monkeypatch):
 def test_missing_model_is_handled_as_rag_error_without_an_explicit_llm(db_session, monkeypatch):
     """
     With no `llm=` override, answer_query() falls back to the real
-    process-wide LLMService singleton. With LLM_MODEL_PATH unset (the
-    default/test environment), that must surface as a clean RAGError --
-    never a crash, and never a fabricated answer.
+    process-wide LLM singleton. This test exercises the llama_cpp provider
+    path (LLM_MODEL_PATH unset), confirming it surfaces as a clean RAGError
+    -- never a crash, and never a fabricated answer.
+    (The Ollama-provider equivalent is in test_ollama_provider.py's
+    TestProviderFactory and connection-failure tests.)
     """
     monkeypatch.setattr(rag_service, "search_with_rerank", lambda db, query, top_k=None, rerank=True: [])
     from app.core.config import settings
 
+    monkeypatch.setattr(settings, "llm_provider", "llama_cpp")
     monkeypatch.setattr(settings, "llm_model_path", None)
     rag_service.llm_service.reset_llm_service()
 
@@ -171,6 +174,7 @@ def test_missing_model_is_handled_as_rag_error_without_an_explicit_llm(db_sessio
         answer_query(db_session, "a question")
 
     rag_service.llm_service.reset_llm_service()
+
 
 
 @pytest.mark.parametrize("bad_query", ["", "   ", None])
