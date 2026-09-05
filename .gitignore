@@ -21,3 +21,6 @@ Thumbs.db
 # Storage
 backend/storage/*
 !backend/storage/.gitkeep
+
+# Local LLM model files (never committed -- see backend/docs/PHASE5.md)
+*.gguf

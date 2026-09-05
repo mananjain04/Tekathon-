@@ -7,6 +7,7 @@ All values are read from environment variables (optionally via a local
 from functools import lru_cache
 from typing import Optional
 
+from pydantic import field_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 from sqlalchemy.engine import URL, make_url
 
@@ -77,10 +78,38 @@ class Settings(BaseSettings):
     retrieval_top_k_default: int = 10
     retrieval_top_k_max: int = 100
 
-    # --- LLM provider (used from Phase 7/8 onward) ---
-    llm_provider: str = "groq"
-    groq_api_key: Optional[str] = None
-    groq_model: str = "llama-3.3-70b-versatile"
+    # --- Local LLM (Phase 5A: llama.cpp / GGUF, fully offline) ---
+    # "llama_cpp" is currently the only supported provider -- no cloud/hosted
+    # provider is implemented, by design (see backend/docs/PHASE5.md).
+    llm_provider: str = "llama_cpp"
+    # Path to a local GGUF model file (e.g. Qwen3-4B-Instruct-2507, Q4_K_M
+    # quantization). Left unset, llm_service.py raises a clear LLMModelError
+    # on first use rather than crashing at startup -- the model is NEVER
+    # downloaded automatically.
+    llm_model_path: Optional[str] = None
+    llm_context_size: int = 4096
+    llm_max_tokens: int = 512
+    llm_temperature: float = 0.2
+    # Number of transformer layers to offload to GPU (llama.cpp n_gpu_layers).
+    # 0 = CPU-only. Set higher (or -1 for "all layers") on a machine with a
+    # capable GPU, e.g. the target RTX 4050 6GB. CPU fallback always remains
+    # possible by leaving this at 0.
+    llm_gpu_layers: int = 0
+    # None lets llama.cpp pick a sensible default thread count.
+    llm_threads: Optional[int] = None
+
+    @field_validator("llm_threads", mode="before")
+    @classmethod
+    def _blank_llm_threads_is_none(cls, value):
+        # An empty LLM_THREADS= line in .env (the natural way to leave an
+        # optional setting unset, same as TESSERACT_CMD=/EMBEDDING_CACHE_DIR=
+        # elsewhere in this file) would otherwise fail int-parsing, since
+        # those other optional fields are all Optional[str] where "" is a
+        # valid string. This is the one Optional[int] setting, so it needs
+        # its own explicit "" -> None coercion.
+        if isinstance(value, str) and value.strip() == "":
+            return None
+        return value
 
     model_config = SettingsConfigDict(
         env_file=".env",

@@ -30,6 +30,17 @@ pillow>=10.4
 # few hundred MB) but runs CPU-only fine on a laptop with no NVIDIA GPU.
 sentence-transformers>=3.2.0
 
+# Local LLM runtime (Phase 5A): GGUF model inference via llama.cpp bindings.
+# NOTE: as of this writing there is no prebuilt wheel for Python 3.13 on
+# Windows, so `pip install` falls back to building from source, which needs
+# a C++ toolchain + CMake and can fail on Windows' default (short) path
+# length limit while extracting llama.cpp's source tree. See
+# backend/docs/PHASE5.md "Installing llama-cpp-python on Windows" before
+# installing this. Left uninstalled, the rest of the app still runs fine --
+# only /api/rag/query is affected, and it fails with a clear LLMModelError
+# rather than crashing the app.
+llama-cpp-python>=0.3.0
+
 # Tests (Phase 2/3)
 pytest>=8.3
 httpx>=0.27

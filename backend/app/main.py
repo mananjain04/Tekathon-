@@ -4,7 +4,7 @@ from sqlalchemy import text
 from sqlalchemy.orm import Session
 
 from app.db.database import get_db
-from app.routes import documents, retrieval
+from app.routes import documents, rag, retrieval
 
 app = FastAPI(
     title="SIH AI Backend",
@@ -24,6 +24,7 @@ app.add_middleware(
 
 app.include_router(documents.router)
 app.include_router(retrieval.router)
+app.include_router(rag.router)
 
 
 @app.get("/api/health")
