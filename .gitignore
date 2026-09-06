@@ -30,4 +30,8 @@ backend/storage/*
 .pytest_cache/
 backend/.pytest_cache/
 RAG_Chatbot/
-
+
+# Frontend
+frontend/node_modules/
+frontend/dist/
+frontend/.env.local
