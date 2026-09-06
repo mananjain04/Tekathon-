@@ -22,6 +22,7 @@ import logging
 from typing import Optional
 
 from app.core.config import settings
+from app.core.url_security import OllamaURLSecurityError, validate_ollama_base_url
 from app.services.llm_service import LLMModelError
 
 logger = logging.getLogger(__name__)
@@ -52,8 +53,20 @@ class OllamaProvider:
         model: Optional[str] = None,
         timeout: Optional[float] = None,
     ):
+        raw_base_url = base_url if base_url is not None else settings.ollama_base_url
+
+        # Fail closed BEFORE any prompt can ever be sent through this
+        # instance: config.py already validates settings.ollama_base_url
+        # at startup, but this instance may have been constructed with an
+        # explicit override (tests, or future callers) that bypasses
+        # settings entirely -- so re-validate here too (defense in depth).
+        try:
+            validate_ollama_base_url(raw_base_url)
+        except OllamaURLSecurityError as exc:
+            raise LLMModelError(f"Ollama configuration rejected: {exc}") from exc
+
         # Strip trailing slash so URL joins are always clean.
-        self.base_url = (base_url if base_url is not None else settings.ollama_base_url).rstrip("/")
+        self.base_url = raw_base_url.rstrip("/")
         self.model = model if model is not None else settings.ollama_model
         self.timeout = timeout if timeout is not None else settings.ollama_timeout
 

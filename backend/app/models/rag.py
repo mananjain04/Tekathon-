@@ -37,6 +37,14 @@ class RAGSource(BaseModel):
     similarity: Optional[float] = None
     distance: Optional[float] = None
     rerank_score: Optional[float] = None
+    citation_valid: Optional[bool] = Field(
+        default=None,
+        description=(
+            "Phase 4 post-LLM citation cross-validation: True if this source's chunk_id was "
+            "actually part of the retrieved set the answer was grounded in, False if not "
+            "(potential hallucination), None if validation wasn't run."
+        ),
+    )
 
 
 class RAGQueryResponse(BaseModel):

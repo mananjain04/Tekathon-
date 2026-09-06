@@ -11,6 +11,40 @@ from pydantic import field_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 from sqlalchemy.engine import URL, make_url
 
+from app.core.url_security import OllamaURLSecurityError, validate_ollama_base_url
+
+
+# Known placeholder/weak values that must never be accepted as a real JWT
+# signing secret. Checked case-insensitively. This list exists solely to
+# catch the specific known-committed placeholder (and other common
+# footguns) -- it is NOT a substitute for the length/entropy checks below.
+_KNOWN_WEAK_JWT_SECRETS = {
+    "change_me_generate_with_secrets_token_hex_32",
+    "changeme",
+    "change_me",
+    "secret",
+    "supersecret",
+    "password",
+    "your-secret-key",
+    "your_secret_key",
+    "jwt_secret",
+    "jwtsecret",
+    "test",
+    "testing",
+    "example",
+    "development",
+    "dev-secret",
+    "dev_secret",
+    "insecure",
+    "12345678",
+    "00000000000000000000000000000000",
+}
+
+_MIN_JWT_SECRET_LENGTH = 32  # matches the length of secrets.token_hex(16); the
+# documented generation command (token_hex(32)) produces 64 hex characters.
+_MIN_JWT_SECRET_DISTINCT_CHARS = 8  # rejects low-entropy strings like "aaaa...aaa"
+# that are technically long enough but not plausibly randomly generated.
+
 
 class Settings(BaseSettings):
     # --- PostgreSQL ---
@@ -52,10 +86,14 @@ class Settings(BaseSettings):
     # Optional override for where sentence-transformers caches the
     # downloaded model. Left unset, it uses the HF default (~/.cache).
     embedding_cache_dir: Optional[str] = None
-    # Set true before an offline demo (once the model is already cached)
-    # to guarantee sentence-transformers/huggingface_hub make zero network
-    # calls, including update checks.
-    embedding_offline_mode: bool = False
+    # SECURE DEFAULT: True. Guarantees sentence-transformers/huggingface_hub
+    # make zero network calls (including a quick "check for updates") during
+    # normal runtime -- KAVACH must not silently phone home. To intentionally
+    # warm the local model cache on a fresh machine (a deliberate, one-time
+    # setup step, not normal runtime), temporarily set
+    # EMBEDDING_OFFLINE_MODE=false in .env, run once, then set it back to
+    # true (or just remove the override -- true is the default).
+    embedding_offline_mode: bool = True
 
     # --- Reranker (Phase 4B: cross-encoder re-ranking over Phase 4A's
     # vector-retrieved candidates) ---
@@ -67,11 +105,11 @@ class Settings(BaseSettings):
     # Optional override for where sentence-transformers caches the
     # downloaded cross-encoder model. Left unset, it uses the HF default.
     reranker_cache_dir: Optional[str] = None
-    # Set true before an offline demo (once the model is already cached)
-    # to guarantee sentence-transformers/huggingface_hub make zero network
-    # calls, including update checks. Independent of embedding_offline_mode
-    # since the two models can be cached/verified at different times.
-    reranker_offline_mode: bool = False
+    # SECURE DEFAULT: True. Same guarantee and same intentional-override
+    # mechanism as embedding_offline_mode above (RERANKER_OFFLINE_MODE=false
+    # for a one-time cache-warming step only) -- independent setting since
+    # the two models can be cached/verified at different times.
+    reranker_offline_mode: bool = True
 
     # --- Retrieval (Phase 4A: pgvector search; Phase 4B: optional
     # cross-encoder re-ranking of the same candidates) ---
@@ -102,10 +140,11 @@ class Settings(BaseSettings):
     llm_threads: Optional[int] = None
 
     # --- Security / Authentication (Phase 1) ---
-    # IMPORTANT: Set JWT_SECRET_KEY to a strong random value in .env.
-    # Generate one with: python -c "import secrets; print(secrets.token_hex(32))"
-    # Never use the default in production.
-    jwt_secret_key: str = "CHANGE_ME_generate_with_secrets_token_hex_32"
+    # REQUIRED. No default is provided on purpose: the app must fail to start
+    # rather than silently sign tokens with a known/guessable secret. Set it
+    # in backend/.env (git-ignored, never committed):
+    #   python -c "import secrets; print(secrets.token_hex(32))"
+    jwt_secret_key: str
     jwt_access_token_expire_minutes: int = 60
 
     # --- RAG Output Validation (Phase 4) ---
@@ -139,6 +178,72 @@ class Settings(BaseSettings):
         # its own explicit "" -> None coercion.
         if isinstance(value, str) and value.strip() == "":
             return None
+        return value
+
+    @field_validator("ollama_base_url")
+    @classmethod
+    def _validate_ollama_base_url_is_loopback(cls, value: str) -> str:
+        """
+        Fails closed at startup (not just on first LLM call) if
+        OLLAMA_BASE_URL doesn't point at the local loopback interface --
+        KAVACH must never be able to send a prompt (which may embed
+        confidential retrieved document text) to a non-local address. See
+        app/core/url_security.py for the exact rules. Never rewrites the
+        URL -- only accepts it unchanged or raises.
+        """
+        try:
+            validate_ollama_base_url(value)
+        except OllamaURLSecurityError as exc:
+            raise ValueError(str(exc)) from exc
+        return value
+
+    @field_validator("jwt_secret_key")
+    @classmethod
+    def _validate_jwt_secret_strength(cls, value: str) -> str:
+        """
+        Fails closed (raises, refusing to construct Settings -- and since
+        `settings = get_settings()` runs at module-import time, this means
+        the whole application refuses to start) if JWT_SECRET_KEY is:
+          - empty/whitespace
+          - a known placeholder/weak value (see _KNOWN_WEAK_JWT_SECRETS)
+          - too short to plausibly be a real generated secret
+          - too low in character variety to plausibly be a real generated
+            secret (catches e.g. "aaaa...aaa" padding tricks)
+
+        Never includes the actual secret value in any error message -- only
+        its length (a non-sensitive fact) is ever reported.
+        """
+        if value is None or not value.strip():
+            raise ValueError(
+                "JWT_SECRET_KEY must be set. Generate one with: "
+                'python -c "import secrets; print(secrets.token_hex(32))" '
+                "and set it in backend/.env (never commit .env)."
+            )
+
+        normalized = value.strip()
+
+        if normalized.lower() in _KNOWN_WEAK_JWT_SECRETS:
+            raise ValueError(
+                "JWT_SECRET_KEY is set to a known placeholder/weak value and must not be used. "
+                "Generate a real secret with: "
+                'python -c "import secrets; print(secrets.token_hex(32))" '
+                "and set it in backend/.env (never commit .env)."
+            )
+
+        if len(normalized) < _MIN_JWT_SECRET_LENGTH:
+            raise ValueError(
+                f"JWT_SECRET_KEY is too short ({len(normalized)} characters; minimum is "
+                f"{_MIN_JWT_SECRET_LENGTH}). Generate one with: "
+                'python -c "import secrets; print(secrets.token_hex(32))"'
+            )
+
+        if len(set(normalized)) < _MIN_JWT_SECRET_DISTINCT_CHARS:
+            raise ValueError(
+                "JWT_SECRET_KEY does not look like a securely generated random secret "
+                "(too little character variety). Generate one with: "
+                'python -c "import secrets; print(secrets.token_hex(32))"'
+            )
+
         return value
 
     model_config = SettingsConfigDict(

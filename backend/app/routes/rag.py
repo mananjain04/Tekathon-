@@ -46,7 +46,14 @@ def query(
     # Phase 2: VIEWER minimum — querying is the least-privileged operation.
     require_role(current_user, UserRole.VIEWER)
 
-    # Phase 4 (pre-LLM): retrieve chunks to check similarity threshold.
+    # Retrieve + re-rank exactly ONCE for this request. The same
+    # `ranked_chunks` snapshot is used for the pre-LLM similarity
+    # threshold gate below, for building the LLM's context (inside
+    # rag_service.answer_query), and for the post-LLM citation
+    # cross-validation -- avoiding the double retrieval/re-ranking that
+    # used to happen here (one call here + a second internal call inside
+    # answer_query), which risked the context/citation check being built
+    # from a different chunk set than the threshold check saw.
     try:
         ranked_chunks = search_with_rerank(db, request.query, top_k=request.top_k, rerank=True)
     except RetrievalError as exc:
@@ -60,14 +67,16 @@ def query(
             sources=[],
         )
 
-    # Run the full RAG pipeline (rag_service re-runs retrieval internally;
-    # we pass top_k to keep results consistent).
+    # Run the rest of the RAG pipeline (context -> prompt -> LLM) against
+    # this exact same ranked_chunks snapshot -- rag_service.answer_query()
+    # does NOT retrieve again when given ranked_chunks explicitly.
     try:
-        result = rag_service.answer_query(db, request.query, request.top_k)
+        result = rag_service.answer_query(db, request.query, request.top_k, ranked_chunks=ranked_chunks)
     except RAGError as exc:
         raise HTTPException(status.HTTP_400_BAD_REQUEST, str(exc)) from exc
 
-    # Phase 4 (post-LLM): cross-validate citations against retrieved chunk IDs.
+    # Phase 4 (post-LLM): cross-validate citations against the SAME
+    # retrieved chunk IDs the context was built from.
     retrieved_ids = [c["chunk_id"] for c in ranked_chunks]
     validated_sources = validate_sources(result.get("sources", []), retrieved_ids)
 

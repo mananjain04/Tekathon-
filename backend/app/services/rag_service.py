@@ -43,6 +43,7 @@ def answer_query(
     top_k: Optional[int] = None,
     *,
     llm: Optional[LLMService] = None,
+    ranked_chunks: Optional[list] = None,
 ) -> Dict:
     """
     Runs the full RAG pipeline for one user query and returns:
@@ -65,6 +66,16 @@ def answer_query(
     test_retrieval_service.py monkeypatches get_embedding_service()/
     get_reranker_service() rather than requiring real models.
 
+    `ranked_chunks`, if given, is used AS-IS instead of calling
+    search_with_rerank() again -- this is how routes/rag.py avoids
+    retrieving/re-ranking twice (once for the pre-LLM similarity-threshold
+    check, once here): the route performs retrieval+re-ranking exactly
+    once and passes that same snapshot in, so the context the LLM sees and
+    the chunk IDs used for post-LLM citation validation are guaranteed to
+    be the same set. Left as None (the default), this function retrieves
+    internally, exactly as it always has -- so every existing caller/test
+    that doesn't pass this keyword is unaffected.
+
     Raises RAGError for an empty/whitespace query, a retrieval/re-ranking
     failure, or a local LLM failure/unavailability. Never returns a
     fabricated answer: any failure is a raised exception, not a
@@ -73,10 +84,11 @@ def answer_query(
     if query is None or not query.strip():
         raise RAGError("Query must not be empty.")
 
-    try:
-        ranked_chunks = search_with_rerank(db, query, top_k=top_k, rerank=True)
-    except RetrievalError as exc:
-        raise RAGError(f"Retrieval failed: {exc}") from exc
+    if ranked_chunks is None:
+        try:
+            ranked_chunks = search_with_rerank(db, query, top_k=top_k, rerank=True)
+        except RetrievalError as exc:
+            raise RAGError(f"Retrieval failed: {exc}") from exc
 
     context = build_context(ranked_chunks)
     evidence = build_evidence(ranked_chunks)
