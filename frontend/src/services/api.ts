@@ -12,7 +12,9 @@ export {
   setAuthToken,
   clearAuthToken,
   getAuthHeaders,
+  ensureAuthToken,
 } from './client';
+
 export type {
   HealthStatus,
   BackendDocumentStatus,

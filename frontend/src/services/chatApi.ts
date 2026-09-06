@@ -1,6 +1,7 @@
 import { ChatRequest, ChatResponse, Conversation, DocumentCitation } from '../types';
 import { INITIAL_CONVERSATIONS } from '../mock/chatMock';
-import { API_BASE_URL, ApiError, getAuthHeaders, BackendRAGQueryResponse } from './client';
+import { API_BASE_URL, ApiError, getAuthHeaders, ensureAuthToken, BackendRAGQueryResponse } from './client';
+
 import { documentApi } from './documentApi';
 
 const CONVERSATIONS_STORAGE_KEY = 'kavach_chat_conversations';
@@ -22,8 +23,10 @@ export const chatApi = {
 
     let response: Response;
     try {
+      await ensureAuthToken();
       const controller = new AbortController();
       const timeoutId = setTimeout(() => controller.abort(), 45000); // LLM inference can take up to 45s
+
       
       // Attempt verified backend endpoint: POST /api/rag/query
       response = await fetch(`${API_BASE_URL}/rag/query`, {

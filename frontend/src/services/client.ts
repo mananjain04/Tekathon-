@@ -35,6 +35,28 @@ export function clearAuthToken(): void {
   }
 }
 
+let autoLoginPromise: Promise<string | null> | null = null;
+
+export async function ensureAuthToken(): Promise<string | null> {
+  const existing = getAuthToken();
+  if (existing) return existing;
+
+  if (autoLoginPromise) return autoLoginPromise;
+
+  autoLoginPromise = (async () => {
+    try {
+      const data = await authApi.login('admin', 'Kavach@2026!');
+      return data.access_token;
+    } catch {
+      return null;
+    } finally {
+      autoLoginPromise = null;
+    }
+  })();
+
+  return autoLoginPromise;
+}
+
 export function getAuthHeaders(): Record<string, string> {
   const token = getAuthToken();
   const headers: Record<string, string> = {
@@ -45,6 +67,7 @@ export function getAuthHeaders(): Record<string, string> {
   }
   return headers;
 }
+
 
 // ============================================================================
 // Real Backend API Schemas (matching backend Pydantic models)

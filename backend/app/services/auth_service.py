@@ -1,4 +1,4 @@
-﻿"""
+"""
 app/services/auth_service.py — User CRUD and token validation logic for KAVACH.
 
 Centralizes all database interaction for authentication so routes stay thin.
@@ -37,7 +37,15 @@ _inactive_exception = HTTPException(
 # ---------------------------------------------------------------------------
 
 def get_user_by_username(db: Session, username: str) -> Optional[User]:
-    return db.query(User).filter(User.username == username).first()
+    if not username:
+        return None
+    user = db.query(User).filter(User.username == username).first()
+    if not user and "@" in username:
+        # Also resolve email-style identifiers (e.g. admin@kavach.local -> admin)
+        prefix = username.split("@")[0].strip()
+        user = db.query(User).filter(User.username == prefix).first()
+    return user
+
 
 
 def create_user(db: Session, *, username: str, plain_password: str, role: UserRole = UserRole.VIEWER) -> User:

@@ -1,5 +1,6 @@
 import { DocumentItem, DocumentChunk, DocumentMetadata } from '../types';
-import { API_BASE_URL, ApiError, getAuthHeaders, BackendDocumentOut, BackendProcessResult } from './client';
+import { API_BASE_URL, ApiError, getAuthHeaders, ensureAuthToken, BackendDocumentOut, BackendProcessResult } from './client';
+
 
 const STORAGE_KEY_DOCS = 'kavach_documents_store';
 const STORAGE_KEY_CHUNKS = 'kavach_chunks_store';
@@ -350,6 +351,7 @@ export const documentApi = {
    */
   async getDocuments(allowMockFallback = true): Promise<DocumentItem[]> {
     try {
+      await ensureAuthToken();
       const controller = new AbortController();
       const timeoutId = setTimeout(() => controller.abort(), 4000);
       const res = await fetch(`${API_BASE_URL}/documents`, {
@@ -357,6 +359,7 @@ export const documentApi = {
         signal: controller.signal,
       });
       clearTimeout(timeoutId);
+
 
       if (res.ok) {
         const data = await res.json();
@@ -404,6 +407,7 @@ export const documentApi = {
    */
   async getDocument(id: string): Promise<{ document: DocumentItem; chunks: DocumentChunk[] } | null> {
     try {
+      await ensureAuthToken();
       const controller = new AbortController();
       const timeoutId = setTimeout(() => controller.abort(), 4000);
       const res = await fetch(`${API_BASE_URL}/documents/${id}`, {
@@ -411,6 +415,7 @@ export const documentApi = {
         signal: controller.signal,
       });
       clearTimeout(timeoutId);
+
 
       if (res.ok) {
         const data = await res.json();
@@ -447,6 +452,7 @@ export const documentApi = {
     formData.append('file', file);
 
     try {
+      await ensureAuthToken();
       const controller = new AbortController();
       const timeoutId = setTimeout(() => controller.abort(), 30000);
       const res = await fetch(`${API_BASE_URL}/documents/upload`, {
@@ -455,6 +461,7 @@ export const documentApi = {
         body: formData,
         signal: controller.signal,
       });
+
       clearTimeout(timeoutId);
 
       if (res.ok) {
@@ -592,6 +599,7 @@ export const documentApi = {
    */
   async processDocument(id: string): Promise<DocumentItem> {
     try {
+      await ensureAuthToken();
       const controller = new AbortController();
       const timeoutId = setTimeout(() => controller.abort(), 60000);
       const res = await fetch(`${API_BASE_URL}/documents/${id}/process`, {
@@ -599,6 +607,7 @@ export const documentApi = {
         headers: getAuthHeaders(),
         signal: controller.signal,
       });
+
       clearTimeout(timeoutId);
 
       if (res.ok) {
@@ -705,16 +714,19 @@ export const documentApi = {
    */
   async deleteDocument(id: string): Promise<boolean> {
     try {
+      await ensureAuthToken();
       const controller = new AbortController();
       const timeoutId = setTimeout(() => controller.abort(), 2500);
       await fetch(`${API_BASE_URL}/documents/${id}`, {
         method: 'DELETE',
+        headers: getAuthHeaders(),
         signal: controller.signal,
       });
       clearTimeout(timeoutId);
     } catch {
       // Offline fallback
     }
+
     inMemoryDocuments = inMemoryDocuments.filter((d) => d.id !== id);
     delete inMemoryChunks[id];
     saveStoredDocuments(inMemoryDocuments);

@@ -1,24 +1,39 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ShieldIcon, LockIcon, ServerIcon } from '../components/icons';
+import { ShieldIcon, LockIcon, ServerIcon, AlertTriangleIcon } from '../components/icons';
 import { Button } from '../components/common/Button';
 import { Input } from '../components/common/Input';
 import { Badge } from '../components/common/Badge';
+import { authApi, formatApiErrorMessage } from '../services/api';
 
 export const LoginPage: React.FC = () => {
   const navigate = useNavigate();
-  const [operatorId, setOperatorId] = useState('admin@kavach.local');
-  const [passphrase, setPassphrase] = useState('••••••••••••');
+  const [operatorId, setOperatorId] = useState('admin');
+  const [passphrase, setPassphrase] = useState('Kavach@2026!');
   const [clearanceLevel, setClearanceLevel] = useState('TOP_SECRET');
   const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
-  const handleLogin = (e: React.FormEvent) => {
+  const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
+    setError(null);
     setIsLoading(true);
-    setTimeout(() => {
-      setIsLoading(false);
+
+    try {
+      await authApi.login(operatorId.trim(), passphrase);
       navigate('/dashboard');
-    }, 400);
+    } catch (err: unknown) {
+      setError(formatApiErrorMessage(err));
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const selectPreset = (user: string, pass: string, clearance: string) => {
+    setOperatorId(user);
+    setPassphrase(pass);
+    setClearanceLevel(clearance);
+    setError(null);
   };
 
   return (
@@ -35,16 +50,23 @@ export const LoginPage: React.FC = () => {
             </div>
             <div className="pt-1 flex justify-center gap-2">
               <Badge variant="success" size="sm">Local Node: Active</Badge>
-              <Badge variant="default" size="sm">Private</Badge>
+              <Badge variant="default" size="sm">Air-Gapped</Badge>
             </div>
           </div>
+
+          {error && (
+            <div className="p-3 bg-rose-500/10 border border-rose-500/30 rounded-md text-xs text-rose-400 flex items-start space-x-2">
+              <AlertTriangleIcon size={16} className="shrink-0 mt-0.5" />
+              <span>{error}</span>
+            </div>
+          )}
 
           <form onSubmit={handleLogin} className="space-y-4">
             <Input
               label="Operator Identity / Service ID"
               value={operatorId}
               onChange={(e) => setOperatorId(e.target.value)}
-              placeholder="e.g. admin@kavach.local"
+              placeholder="e.g. admin or admin@kavach.local"
               leftIcon={<ShieldIcon size={15} />}
               required
             />
@@ -68,11 +90,51 @@ export const LoginPage: React.FC = () => {
                 onChange={(e) => setClearanceLevel(e.target.value)}
                 className="w-full rounded-md border border-zinc-800 bg-zinc-900/90 px-3 py-2 text-xs text-zinc-200 focus:outline-none focus:border-blue-500 transition-colors font-mono"
               >
-                <option value="TOP_SECRET">TOP_SECRET (Full Access)</option>
-                <option value="SECRET">SECRET (Operational Documents)</option>
+                <option value="TOP_SECRET">TOP_SECRET (Full Administrative Clearance)</option>
+                <option value="SECRET">SECRET (Analyst Ingestion Clearance)</option>
                 <option value="CONFIDENTIAL">CONFIDENTIAL (Standard Repository)</option>
-                <option value="RESTRICTED">RESTRICTED (Read-Only)</option>
+                <option value="RESTRICTED">RESTRICTED (Read-Only Viewer)</option>
               </select>
+            </div>
+
+            {/* Quick-fill Role Buttons */}
+            <div className="pt-1">
+              <span className="text-[10px] text-zinc-500 font-mono block mb-1.5 uppercase">Quick Access Enclave Roles:</span>
+              <div className="grid grid-cols-3 gap-2">
+                <button
+                  type="button"
+                  onClick={() => selectPreset('admin', 'Kavach@2026!', 'TOP_SECRET')}
+                  className={`px-2 py-1.5 rounded border text-[11px] font-mono transition-colors ${
+                    operatorId === 'admin'
+                      ? 'bg-blue-600/20 border-blue-500/50 text-blue-300'
+                      : 'bg-zinc-900/80 border-zinc-800 text-zinc-400 hover:text-zinc-200 hover:bg-zinc-800/60'
+                  }`}
+                >
+                  👑 Admin
+                </button>
+                <button
+                  type="button"
+                  onClick={() => selectPreset('analyst', 'Kavach@2026!', 'SECRET')}
+                  className={`px-2 py-1.5 rounded border text-[11px] font-mono transition-colors ${
+                    operatorId === 'analyst'
+                      ? 'bg-emerald-600/20 border-emerald-500/50 text-emerald-300'
+                      : 'bg-zinc-900/80 border-zinc-800 text-zinc-400 hover:text-zinc-200 hover:bg-zinc-800/60'
+                  }`}
+                >
+                  🔬 Analyst
+                </button>
+                <button
+                  type="button"
+                  onClick={() => selectPreset('viewer', 'Kavach@2026!', 'RESTRICTED')}
+                  className={`px-2 py-1.5 rounded border text-[11px] font-mono transition-colors ${
+                    operatorId === 'viewer'
+                      ? 'bg-purple-600/20 border-purple-500/50 text-purple-300'
+                      : 'bg-zinc-900/80 border-zinc-800 text-zinc-400 hover:text-zinc-200 hover:bg-zinc-800/60'
+                  }`}
+                >
+                  👁️ Viewer
+                </button>
+              </div>
             </div>
 
             <Button
