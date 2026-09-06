@@ -1,42 +1,122 @@
-# KAVACH Sovereign Document AI - Frontend (Phase 1)
+# KAVACH Sovereign Document AI Workbench
 
-KAVACH is a sovereign, on-premise, document-based AI/RAG workbench designed for confidential industrial and government environments.
+[![Docker Compose](https://img.shields.io/badge/Docker%20Compose-Ready-blue?logo=docker)](docker-compose.yml)
+[![FastAPI](https://img.shields.io/badge/Backend-FastAPI-009688?logo=fastapi)](backend/)
+[![React](https://img.shields.io/badge/Frontend-React%2018%20%2B%20Vite-61DAFB?logo=react)](frontend/)
+[![PostgreSQL](https://img.shields.io/badge/Database-PostgreSQL%20%2B%20pgvector-336791?logo=postgresql)](backend/)
+[![Air-Gapped](https://img.shields.io/badge/Security-Air--Gap%20Sovereign-green?logo=shield)](backend/docs/)
 
-## Architecture & Decisions Implemented
-- **Framework**: React 18 + TypeScript + Vite + Tailwind CSS.
-- **Independence**: Fully decoupled from backend Python environment and dependencies.
-- **Chat Protocol (Decision #2)**: Standard synchronous JSON HTTP responses via `/api/chat`. No SSE streaming is implemented at this phase.
-- **Security Posture**: Tailored UI for defense/government operations (classification badges, air-gap indicators, cryptographic hashes, WORM logging indicators).
+**KAVACH** is a zero-trust, sovereign, on-premise Retrieval-Augmented Generation (RAG) platform designed for mission-critical industrial, defense, and public-sector operations (Refineries, PSUs, Strategic Infrastructure).
 
-## Pages Implemented
-1. **`/login`** - Defense-grade authorization portal with clearance classification and token input.
-2. **`/dashboard`** - Sovereign enclave telemetry, hardware node health, storage partitions, recent classified documents, and quick launch triggers.
-3. **`/documents`** - Classified document repository, search/clearance filtering, and document ingestion modal.
-4. **`/documents/:id`** - Forensic document view displaying vector chunks, token counts, SHA-256 hashes, and ingestion parameters.
-5. **`/chat`** - Sovereign AI inquiry assistant with synchronous JSON querying and cryptographic source citations.
-6. **`/settings`** - Sovereign hardware node configuration, local embedding/LLM selector, vector DB parameters, and air-gap policies.
+Under strict national data sovereignty and air-gap compliance mandates, **zero data ever leaves the local enclave or contacts public cloud LLMs**.
 
-## Getting Started
+---
 
-### 1. Install Dependencies
-```bash
-npm install
+## 🏗️ System Architecture
+
+```
+┌────────────────────────────────────────────────────────┐
+│                   React 18 Frontend                    │
+│      (Vite + Tailwind CSS + Sovereign Enclave UI)      │
+│                     Port: 3000                         │
+└───────────────────────────┬────────────────────────────┘
+                            │ Reverse Proxy /api
+┌───────────────────────────▼────────────────────────────┐
+│                    FastAPI Backend                     │
+│         (JWT Auth, RBAC, PyMuPDF Ingestion,            │
+│         SentenceTransformers 384d, Cross-Encoder)      │
+│                     Port: 8000                         │
+└─────────────┬────────────────────────────┬─────────────┘
+              │                            │
+              ▼                            ▼
+┌───────────────────────────┐┌───────────────────────────┐
+│  PostgreSQL 16 + pgvector ││   Ollama Local LLM        │
+│    (HNSW Cosine Index)    ││   (Qwen 2.5 / Llama 3)    │
+│        Port: 5432         ││        Port: 11434        │
+└───────────────────────────┘└───────────────────────────┘
 ```
 
-### 2. Run Local Development Server
+---
+
+## 🚀 Quickstart with Docker Compose
+
+Run the complete four-service stack with a single command:
+
 ```bash
+docker compose up --build
+```
+
+### Services Started:
+| Service | Technology | Port | Purpose |
+|---|---|---|---|
+| **`frontend`** | Nginx + React 18 SPA | `http://localhost:3000` | Sovereign AI inquiry UI, document explorer, telemetry |
+| **`backend`** | FastAPI + Python 3.11 | `http://localhost:8000` | REST API, PDF processing, dense embeddings, RAG |
+| **`db`** | PostgreSQL 16 + pgvector | `localhost:5432` | Vector storage with HNSW index & user schemas |
+| **`ollama`** | Ollama Container | `localhost:11434` | Local sovereign LLM runtime |
+
+### 🔑 Default Credentials (Auto-Seeded)
+
+The database automatically migrates schema and seeds these initial role-based access accounts upon startup:
+
+* **Admin:** `admin` / `Kavach@2026!` (Full administrative clearance)
+* **Analyst:** `analyst` / `Kavach@2026!` (Document ingestion & query clearance)
+* **Viewer:** `viewer` / `Kavach@2026!` (Read-only query clearance)
+
+---
+
+## ⚡ NVIDIA GPU Acceleration (Optional Host Mode)
+
+If your host machine has an NVIDIA RTX GPU (e.g. RTX 4050 6GB) and you run Ollama locally on Windows for maximum speed:
+
+1. Keep Ollama running on your Windows machine (`ollama serve`).
+2. Pull your model: `ollama pull qwen2.5:latest`.
+3. In `.env` or `docker-compose.yml`, point the backend to the host gateway:
+   ```env
+   OLLAMA_BASE_URL=http://host.docker.internal:11434
+   ```
+4. Run:
+   ```bash
+   docker compose up --build
+   ```
+The backend automatically connects to host Ollama through Docker's secure host gateway without touching external networks.
+
+---
+
+## 💻 Manual Local Development (Without Docker)
+
+### 1. Database
+Ensure PostgreSQL 16+ with `pgvector` is running locally on port 5432:
+```bash
+# Database: sih_rag
+cd backend
+alembic upgrade head
+python scripts/init_db.py
+```
+
+### 2. Backend
+```bash
+cd backend
+pip install -r requirements.txt
+uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
+```
+Swagger API documentation will be live at `http://localhost:8000/docs`.
+
+### 3. Frontend
+```bash
+cd frontend
+npm install
 npm run dev
 ```
-The application will launch on `http://localhost:3000`.
+The React frontend will be live at `http://localhost:3000`.
 
-### 3. Run Typecheck & Production Build
+---
+
+## 🧪 Testing & Verification
+
+Run the comprehensive unit and integration test suite:
+
 ```bash
-npm run typecheck
-npm run build
+cd backend
+pytest -q
 ```
-
-## Transferring to Target Repository Location
-To deploy or synchronize this frontend into `D:\SIH\Tekathon-\frontend`:
-```powershell
-Copy-Item -Recurse -Force "C:\Users\HP\.gemini\antigravity\scratch\frontend\*" "D:\SIH\Tekathon-\frontend\"
-```
+All tests run in 100% offline mode with zero network access required.

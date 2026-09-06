@@ -22,3 +22,50 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
+
+# Environment & credentials
+.env
+*.env
+!.env.example
+!.env.docker.example
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+share/python-wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+.pytest_cache/
+.coverage
+htmlcov/
+.venv/
+venv/
+ENV/
+env/
+
+# Uploaded storage files (keep directory, ignore uploaded PDFs)
+storage/*.pdf
+backend/storage/*.pdf
+!storage/.gitkeep
+!backend/storage/.gitkeep
+
+# Temporary chatbot reference archives
+RAG_Chatbot/
+
+

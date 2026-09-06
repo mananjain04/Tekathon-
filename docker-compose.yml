@@ -1,0 +1,141 @@
+# ==============================================================================
+# PROJECT KAVACH — Sovereign Private Enterprise AI Platform
+# Multi-container Docker Compose Architecture
+# ==============================================================================
+# Services:
+#   1. db        - PostgreSQL 16 + pgvector (0.8.0+)
+#   2. ollama    - Local Ollama AI daemon (self-contained inference)
+#   3. backend   - FastAPI RAG Engine (auto-migrations + user seeding + PyMuPDF)
+#   4. frontend  - React 18 + Vite + Tailwind UI (served via Nginx reverse-proxy)
+# ==============================================================================
+
+version: '3.8'
+
+services:
+  # ----------------------------------------------------------------------------
+  # PostgreSQL with pgvector extension
+  # ----------------------------------------------------------------------------
+  db:
+    image: pgvector/pgvector:pg16
+    container_name: kavach-db
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-postgres}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-KavachSecurePass2026!}
+      POSTGRES_DB: ${POSTGRES_DB:-sih_rag}
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-postgres} -d ${POSTGRES_DB:-sih_rag}"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+      start_period: 10s
+    networks:
+      - kavach-network
+    restart: unless-stopped
+
+  # ----------------------------------------------------------------------------
+  # Ollama Local LLM Service
+  # ----------------------------------------------------------------------------
+  ollama:
+    image: ollama/ollama:latest
+    container_name: kavach-ollama
+    ports:
+      - "11434:11434"
+    volumes:
+      - ollama_data:/root/.ollama
+    networks:
+      - kavach-network
+    restart: unless-stopped
+
+  # ----------------------------------------------------------------------------
+  # KAVACH FastAPI RAG Backend
+  # ----------------------------------------------------------------------------
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: kavach-backend
+    depends_on:
+      db:
+        condition: service_healthy
+      ollama:
+        condition: service_started
+    environment:
+      # Database connection
+      POSTGRES_HOST: db
+      POSTGRES_PORT: 5432
+      POSTGRES_USER: ${POSTGRES_USER:-postgres}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-KavachSecurePass2026!}
+      POSTGRES_DB: ${POSTGRES_DB:-sih_rag}
+
+      # Security & JWT Authentication
+      JWT_SECRET_KEY: ${JWT_SECRET_KEY:-bc5364f96e20e08df4fcaacb7009ff8a960a98ef06fcdd605c3f083455a079f8}
+      JWT_ACCESS_TOKEN_EXPIRE_MINUTES: 60
+
+      # RAG & Embeddings
+      EMBEDDING_DIM: 384
+      EMBEDDING_MODEL_NAME: all-MiniLM-L6-v2
+      EMBEDDING_DEVICE: auto
+      EMBEDDING_OFFLINE_MODE: "false"
+
+      # Cross-Encoder Reranker
+      RERANKER_MODEL_NAME: cross-encoder/ms-marco-MiniLM-L-6-v2
+      RERANKER_DEVICE: auto
+      RERANKER_OFFLINE_MODE: "false"
+
+      # Local LLM Inference:
+      # Use "http://ollama:11434" for the containerized Ollama service.
+      # Or change to "http://host.docker.internal:11434" if running Ollama on host for NVIDIA RTX GPU acceleration.
+      LLM_PROVIDER: ollama
+      OLLAMA_BASE_URL: ${OLLAMA_BASE_URL:-http://ollama:11434}
+      OLLAMA_MODEL: ${OLLAMA_MODEL:-qwen2.5:latest}
+      OLLAMA_TIMEOUT: 120.0
+
+      # Document Storage & Limits
+      STORAGE_DIR: /app/storage
+      MAX_UPLOAD_SIZE_MB: 50
+    volumes:
+      - backend_storage:/app/storage
+    ports:
+      - "8000:8000"
+    extra_hosts:
+      # Allows backend to reach host machine services (e.g. host Ollama with GPU)
+      - "host.docker.internal:host-gateway"
+    networks:
+      - kavach-network
+    restart: unless-stopped
+
+  # ----------------------------------------------------------------------------
+  # KAVACH React Frontend (Nginx Production Server)
+  # ----------------------------------------------------------------------------
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: kavach-frontend
+    depends_on:
+      - backend
+    ports:
+      - "3000:80"
+    networks:
+      - kavach-network
+    restart: unless-stopped
+
+# ------------------------------------------------------------------------------
+# Persistent Volumes & Private Air-Gap Network
+# ------------------------------------------------------------------------------
+volumes:
+  postgres_data:
+    name: kavach_postgres_data
+  ollama_data:
+    name: kavach_ollama_data
+  backend_storage:
+    name: kavach_backend_storage
+
+networks:
+  kavach-network:
+    name: kavach-network
+    driver: bridge

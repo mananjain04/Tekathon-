@@ -30,6 +30,9 @@ class TestAcceptedLoopbackURLs:
             "http://127.0.0.1:11434",
             "http://127.0.0.5:11434",  # anywhere in 127.0.0.0/8 is loopback
             "http://[::1]:11434",
+            "http://ollama:11434",  # Docker container service
+            "http://OLLAMA:11434",  # case-insensitive
+            "http://host.docker.internal:11434",  # Docker host gateway for host GPU inference
         ],
     )
     def test_loopback_url_accepted_unchanged(self, url):

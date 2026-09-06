@@ -15,14 +15,24 @@ app = FastAPI(
     version="0.1.0",
 )
 
-# Allow the future React frontend (dev server) to call this API.
+# Allow React frontend (Vite dev server, Docker preview, or Nginx on port 3000/80)
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:3000", "http://localhost:5173"],
+    allow_origins=[
+        "http://localhost:3000",
+        "http://localhost:5173",
+        "http://localhost:80",
+        "http://localhost",
+        "http://127.0.0.1:3000",
+        "http://127.0.0.1:5173",
+        "http://127.0.0.1:80",
+        "http://127.0.0.1",
+    ],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
 
 
 app.include_router(auth.router)

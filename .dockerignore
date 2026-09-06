@@ -1,0 +1,17 @@
+node_modules
+dist
+dist-ssr
+.git
+.gitignore
+.env
+*.log
+__pycache__
+*.pyc
+.pytest_cache
+.venv
+venv
+storage/*.pdf
+!storage/.gitkeep
+RAG_Chatbot
+KAVACH_PROJECT_STATUS_AND_ROADMAP.docx
+.DS_Store

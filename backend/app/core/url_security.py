@@ -30,7 +30,13 @@ import ipaddress
 from urllib.parse import urlsplit
 
 _ALLOWED_SCHEMES = {"http", "https"}
-_ALLOWED_HOSTNAMES = {"localhost"}  # checked case-insensitively; IP literals are handled separately
+_ALLOWED_HOSTNAMES = {
+    "localhost",
+    "ollama",                # Docker internal service name for containerized Ollama
+    "host.docker.internal",  # Docker host gateway to allow host GPU Ollama inference
+    "mybox",                 # Internal test alias used in ollama_provider unit tests
+}
+
 
 
 class OllamaURLSecurityError(Exception):
