@@ -76,3 +76,27 @@ def test_zero_page_pdf_raises_pdf_extraction_error(tmp_path):
 
     with pytest.raises(PDFExtractionError):
         extract_pages(pdf_path)
+
+
+def test_ocr_unavailable_falls_back_gracefully(tmp_path, monkeypatch):
+    """
+    When a PDF page has little/no text and OCR is not available,
+    extract_pages should not crash; it should fall back to whatever text
+    is available or an informative placeholder.
+    """
+    import pytesseract
+
+    def _mock_image_to_string(image):
+        raise pytesseract.TesseractNotFoundError()
+
+    monkeypatch.setattr(pytesseract, "image_to_string", _mock_image_to_string)
+
+    pdf_path = tmp_path / "scanned_sample.pdf"
+    # Create a page with almost no text (< 20 chars threshold)
+    _make_pdf(pdf_path, ["Hi"])
+
+    pages = extract_pages(pdf_path)
+    assert len(pages) == 1
+    assert pages[0].ocr_used is False
+    assert "Hi" in pages[0].text or "Scanned image" in pages[0].text
+

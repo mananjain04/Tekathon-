@@ -5,7 +5,10 @@ PyMuPDF (fitz) handles both normal text extraction and rendering a page
 to an image; pytesseract wraps the local Tesseract binary for OCR. No
 network calls are made anywhere in this module.
 """
+import logging
+import os
 import re
+import shutil
 from dataclasses import dataclass
 from pathlib import Path
 from typing import List
@@ -15,6 +18,8 @@ import pytesseract
 from PIL import Image
 
 from app.core.config import settings
+
+logger = logging.getLogger(__name__)
 
 _WHITESPACE_RE = re.compile(r"[ \t\u00a0]+")
 _BLANK_LINES_RE = re.compile(r"\n{3,}")
@@ -46,6 +51,19 @@ def _clean_text(raw: str) -> str:
 def _configure_tesseract_cmd() -> None:
     if settings.tesseract_cmd:
         pytesseract.pytesseract.tesseract_cmd = settings.tesseract_cmd
+        return
+
+    # Auto-detect standard Windows install locations if not in PATH
+    if shutil.which("tesseract") is None:
+        windows_paths = [
+            Path(r"C:\Program Files\Tesseract-OCR\tesseract.exe"),
+            Path(r"C:\Program Files (x86)\Tesseract-OCR\tesseract.exe"),
+            Path(os.path.expandvars(r"%LOCALAPPDATA%\Programs\Tesseract-OCR\tesseract.exe")),
+        ]
+        for p in windows_paths:
+            if p.exists():
+                pytesseract.pytesseract.tesseract_cmd = str(p)
+                break
 
 
 def _ocr_page(page: "fitz.Page") -> str:
@@ -54,7 +72,7 @@ def _ocr_page(page: "fitz.Page") -> str:
     image = Image.frombytes("RGB", (pix.width, pix.height), pix.samples)
     try:
         raw_text = pytesseract.image_to_string(image)
-    except pytesseract.TesseractNotFoundError as exc:
+    except (pytesseract.TesseractNotFoundError, Exception) as exc:
         raise OCRUnavailableError(
             "This page has little/no extractable text and requires OCR, but the "
             "local Tesseract OCR engine was not found. Install Tesseract and/or "
@@ -70,8 +88,9 @@ def extract_pages(pdf_path: Path) -> List[PageExtractionResult]:
     is shorter than settings.ocr_text_threshold, falls back to local OCR
     on a rendered image of that page.
 
-    Raises PDFExtractionError if the file can't be opened as a PDF at all,
-    or OCRUnavailableError if OCR is needed but Tesseract isn't available.
+    If OCR is needed but Tesseract is not installed, it falls back to whatever
+    text could be extracted with a placeholder note so document ingestion does
+    not crash.
     """
     try:
         doc = fitz.open(pdf_path)
@@ -99,11 +118,26 @@ def extract_pages(pdf_path: Path) -> List[PageExtractionResult]:
                 continue
 
             # Insufficient normal text -> OCR fallback.
-            ocr_text = _ocr_page(page)
-            # Prefer whichever extraction produced more content.
-            final_text = ocr_text if len(ocr_text) >= len(normal_text) else normal_text
-            results.append(PageExtractionResult(page_number, final_text, ocr_used=True))
+            try:
+                ocr_text = _ocr_page(page)
+                # Prefer whichever extraction produced more content.
+                final_text = ocr_text if len(ocr_text) >= len(normal_text) else normal_text
+                results.append(PageExtractionResult(page_number, final_text, ocr_used=True))
+            except OCRUnavailableError as exc:
+                logger.warning(
+                    "OCR unavailable for page %d of %s: %s. Using fallback.",
+                    page_number,
+                    pdf_path.name,
+                    exc,
+                )
+                final_text = (
+                    normal_text
+                    if normal_text
+                    else f"[Page {page_number}: Scanned image - Tesseract OCR not installed on host]"
+                )
+                results.append(PageExtractionResult(page_number, final_text, ocr_used=False))
     finally:
         doc.close()
 
     return results
+
