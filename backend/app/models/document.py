@@ -24,6 +24,7 @@ class DocumentOut(BaseModel):
     status: DocumentStatus
     content_type: Optional[str] = None
     page_count: Optional[int] = None
+    chunk_count: Optional[int] = None
     error_message: Optional[str] = None
     created_at: Optional[datetime] = None
     updated_at: Optional[datetime] = None

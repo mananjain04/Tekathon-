@@ -46,10 +46,10 @@ export const ChatInput: React.FC<ChatInputProps> = ({
     : 'Ask a question across indexed documents...';
 
   return (
-    <div className="bg-[#0c0c0e] border-t border-zinc-800/80 p-3 space-y-2 shrink-0">
+    <div className="bg-white/70 border-t border-zinc-200/80 p-3.5 space-y-2 shrink-0 backdrop-blur-md">
       {/* Optional Error Banner */}
       {error && (
-        <div className="flex items-center space-x-2 text-xs text-rose-400 bg-rose-950/30 border border-rose-800/40 p-2 rounded-md font-mono">
+        <div className="flex items-center space-x-2 text-xs text-rose-700 bg-rose-50 border border-rose-200 p-2.5 rounded-lg font-mono">
           <AlertCircleIcon size={14} className="shrink-0" />
           <span>{error}</span>
         </div>
@@ -57,24 +57,24 @@ export const ChatInput: React.FC<ChatInputProps> = ({
 
       {/* Target Document Context Tag */}
       {selectedDocName && (
-        <div className="flex items-center justify-between text-[11px] font-mono text-zinc-400 px-1">
+        <div className="flex items-center justify-between text-[11px] font-mono text-zinc-600 px-1">
           <span className="flex items-center gap-1.5 truncate">
-            <span className="text-blue-400 font-medium">Context:</span>
-            <span className="text-zinc-200 truncate">{selectedDocName}</span>
+            <span className="text-zinc-950 font-bold">Context:</span>
+            <span className="text-zinc-800 font-medium truncate">{selectedDocName}</span>
           </span>
-          <span className="text-zinc-500 shrink-0 text-[10px]">Enter to send · Shift+Enter for newline</span>
+          <span className="text-zinc-400 shrink-0 text-[10px]">Enter to send · Shift+Enter for newline</span>
         </div>
       )}
 
       {/* Input Form Box */}
-      <div className="relative flex items-end gap-2 bg-[#141418] border border-zinc-800 focus-within:border-blue-500 focus-within:ring-1 focus-within:ring-blue-500/30 rounded-lg p-2 transition-all">
+      <div className="relative flex items-end gap-2 bg-white/90 border border-zinc-300 focus-within:border-zinc-950 focus-within:ring-2 focus-within:ring-zinc-950/10 rounded-xl p-2.5 transition-all shadow-sm">
         {onAttachClick && (
           <button
             type="button"
             onClick={onAttachClick}
             title="Attach or filter document"
             disabled={isProcessing}
-            className="p-1.5 text-zinc-400 hover:text-zinc-200 hover:bg-zinc-800 rounded transition-colors disabled:opacity-40"
+            className="p-1.5 text-zinc-500 hover:text-zinc-950 hover:bg-zinc-100 rounded-lg transition-colors disabled:opacity-40"
           >
             <PaperclipIcon size={15} />
           </button>
@@ -88,7 +88,7 @@ export const ChatInput: React.FC<ChatInputProps> = ({
           onKeyDown={handleKeyDown}
           disabled={isProcessing}
           placeholder={placeholder || defaultPlaceholder}
-          className="flex-1 bg-transparent border-none text-xs text-zinc-100 placeholder-zinc-500 focus:outline-none resize-none py-1.5 max-h-36 leading-relaxed disabled:opacity-50 font-sans"
+          className="flex-1 bg-transparent border-none text-xs sm:text-sm text-zinc-950 placeholder-zinc-400 focus:outline-none resize-none py-1.5 max-h-36 leading-relaxed disabled:opacity-50 font-sans"
         />
 
         <div className="flex items-center space-x-1.5 shrink-0">

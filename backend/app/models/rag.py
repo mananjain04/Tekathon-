@@ -13,6 +13,10 @@ from app.core.config import settings
 
 class RAGQueryRequest(BaseModel):
     query: str = Field(..., min_length=1, description="The user's question.")
+    document_id: Optional[uuid.UUID] = Field(
+        default=None,
+        description="Optional document ID to scope retrieval exclusively to one document.",
+    )
     top_k: int = Field(
         default_factory=lambda: settings.retrieval_top_k_default,
         ge=1,

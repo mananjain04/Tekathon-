@@ -4,114 +4,170 @@
 
 @layer base {
   :root {
-    color-scheme: dark;
-    --bg-base: #09090b;
-    --bg-surface: #121215;
-    --bg-card: #141418;
-    --bg-hover: #1c1c21;
-    --border: #27272a;
-    --border-subtle: rgba(255, 255, 255, 0.08);
-    --accent: #3b82f6;
-    --success: #10b981;
-    --warning: #f59e0b;
-    --danger: #ef4444;
+    color-scheme: light;
+    --bg-base: #f8fafc;
+    --bg-surface: rgba(255, 255, 255, 0.85);
+    --bg-card: rgba(255, 255, 255, 0.8);
+    --bg-hover: rgba(255, 255, 255, 0.95);
+    --border: rgba(226, 232, 240, 0.8);
+    --border-subtle: rgba(0, 0, 0, 0.06);
+    --accent: #0f172a;
+    --success: #059669;
+    --warning: #d97706;
+    --danger: #dc2626;
   }
   
   body {
-    background-color: #09090b;
-    color: #f4f4f5;
+    background-color: #0f172a;
+    color: #09090b;
     font-family: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
     font-feature-settings: "cv02", "cv03", "cv04", "cv11";
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
   }
 
-  /* High-density precision scrollbars */
+  /* Refined, modern frosted scrollbars */
   ::-webkit-scrollbar {
     width: 6px;
     height: 6px;
   }
 
   ::-webkit-scrollbar-track {
-    background: #09090b;
+    background: transparent;
   }
 
   ::-webkit-scrollbar-thumb {
-    background: #27272a;
-    border-radius: 3px;
+    background: rgba(148, 163, 184, 0.4);
+    border-radius: 9999px;
   }
 
   ::-webkit-scrollbar-thumb:hover {
-    background: #3f3f46;
+    background: rgba(100, 116, 139, 0.6);
   }
 }
 
 @layer components {
-  .kavach-panel {
-    background-color: #121215;
-    border: 1px solid #27272a;
-    border-radius: 0.5rem;
+  /* Frosted Glass Core Components - Light Transparent */
+  .kavach-glass-panel {
+    background-color: rgba(255, 255, 255, 0.42);
+    backdrop-filter: blur(20px) saturate(140%);
+    -webkit-backdrop-filter: blur(20px) saturate(140%);
+    border: 1px solid rgba(255, 255, 255, 0.55);
+    box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.06);
+    border-radius: 1.25rem;
   }
 
-  .kavach-surface {
-    background-color: #18181b;
-    border: 1px solid #27272a;
-    border-radius: 0.375rem;
+  .kavach-glass-card {
+    background-color: rgba(255, 255, 255, 0.38);
+    backdrop-filter: blur(16px) saturate(140%);
+    -webkit-backdrop-filter: blur(16px) saturate(140%);
+    border: 1px solid rgba(255, 255, 255, 0.5);
+    box-shadow: 0 4px 20px -2px rgba(0, 0, 0, 0.05);
+    border-radius: 1rem;
+    transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
   }
 
-  .kavach-surface-hover {
+  .kavach-glass-card:hover {
+    background-color: rgba(255, 255, 255, 0.55);
+    box-shadow: 0 8px 24px -3px rgba(0, 0, 0, 0.08);
+  }
+
+  .kavach-glass-sidebar {
+    background-color: rgba(255, 255, 255, 0.48);
+    backdrop-filter: blur(24px) saturate(160%);
+    -webkit-backdrop-filter: blur(24px) saturate(160%);
+    border-right: 1px solid rgba(255, 255, 255, 0.4);
+  }
+
+  .kavach-glass-input {
+    background-color: rgba(255, 255, 255, 0.40);
+    backdrop-filter: blur(12px);
+    border: 1px solid rgba(255, 255, 255, 0.55);
+    color: #0f172a;
+    border-radius: 0.75rem;
     transition: all 0.15s ease-in-out;
   }
-  .kavach-surface-hover:hover {
-    background-color: #202024;
-    border-color: #3f3f46;
+
+  .kavach-glass-input:focus {
+    background-color: rgba(255, 255, 255, 0.7);
+    border-color: rgba(15, 23, 42, 0.6);
+    box-shadow: 0 0 0 2px rgba(15, 23, 42, 0.08);
   }
 
+  /* Telemetry Status Pills */
   .status-pill-online {
     display: inline-flex;
     align-items: center;
     gap: 0.375rem;
-    font-size: 0.75rem;
+    font-size: 0.7rem;
     font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
-    font-weight: 500;
-    color: #34d399;
-    background: rgba(16, 185, 129, 0.08);
-    border: 1px solid rgba(16, 185, 129, 0.2);
-    padding: 0.125rem 0.5rem;
-    border-radius: 0.25rem;
+    font-weight: 600;
+    letter-spacing: 0.05em;
+    color: #065f46;
+    background: rgba(255, 255, 255, 0.8);
+    backdrop-filter: blur(8px);
+    border: 1px solid rgba(209, 250, 229, 0.8);
+    padding: 0.2rem 0.6rem;
+    border-radius: 9999px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
   }
 
   .status-pill-local {
     display: inline-flex;
     align-items: center;
     gap: 0.375rem;
-    font-size: 0.75rem;
+    font-size: 0.7rem;
     font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
-    font-weight: 500;
-    color: #60a5fa;
-    background: rgba(59, 130, 246, 0.08);
-    border: 1px solid rgba(59, 130, 246, 0.2);
-    padding: 0.125rem 0.5rem;
-    border-radius: 0.25rem;
+    font-weight: 600;
+    letter-spacing: 0.05em;
+    color: #1e293b;
+    background: rgba(255, 255, 255, 0.8);
+    backdrop-filter: blur(8px);
+    border: 1px solid rgba(226, 232, 240, 0.8);
+    padding: 0.2rem 0.6rem;
+    border-radius: 9999px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
   }
 
   .status-pill-warning {
     display: inline-flex;
     align-items: center;
     gap: 0.375rem;
-    font-size: 0.75rem;
+    font-size: 0.7rem;
     font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
-    font-weight: 500;
-    color: #fbbf24;
-    background: rgba(245, 158, 11, 0.08);
-    border: 1px solid rgba(245, 158, 11, 0.2);
-    padding: 0.125rem 0.5rem;
-    border-radius: 0.25rem;
+    font-weight: 600;
+    letter-spacing: 0.05em;
+    color: #92400e;
+    background: rgba(255, 255, 255, 0.8);
+    backdrop-filter: blur(8px);
+    border: 1px solid rgba(254, 243, 199, 0.8);
+    padding: 0.2rem 0.6rem;
+    border-radius: 9999px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
   }
 }
 
 @layer utilities {
-  .soft-border {
-    border-color: #27272a;
+  .editorial-heading {
+    font-family: 'Inter', system-ui, sans-serif;
+    font-weight: 900;
+    letter-spacing: -0.04em;
+    text-transform: uppercase;
+    color: #000000;
+  }
+  
+  .editorial-subhead {
+    letter-spacing: 0.25em;
+    text-transform: uppercase;
+    font-weight: 600;
+    color: #475569;
+  }
+
+  .editorial-tagline {
+    letter-spacing: 0.28em;
+    text-transform: uppercase;
+    font-weight: 600;
+    color: #334155;
   }
 }
+

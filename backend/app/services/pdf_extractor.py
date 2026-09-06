@@ -67,19 +67,34 @@ def _configure_tesseract_cmd() -> None:
 
 
 def _ocr_page(page: "fitz.Page") -> str:
-    _configure_tesseract_cmd()
     pix = page.get_pixmap(dpi=settings.ocr_render_dpi)
     image = Image.frombytes("RGB", (pix.width, pix.height), pix.samples)
+
+    # 1. Try local pytesseract if configured or available
+    _configure_tesseract_cmd()
     try:
         raw_text = pytesseract.image_to_string(image)
-    except (pytesseract.TesseractNotFoundError, Exception) as exc:
-        raise OCRUnavailableError(
-            "This page has little/no extractable text and requires OCR, but the "
-            "local Tesseract OCR engine was not found. Install Tesseract and/or "
-            "set TESSERACT_CMD in .env to its executable path "
-            "(see backend/docs/PHASE2.md for Windows install steps)."
-        ) from exc
-    return _clean_text(raw_text)
+        cleaned = _clean_text(raw_text)
+        if len(cleaned) >= settings.ocr_text_threshold:
+            return cleaned
+    except Exception:
+        pass
+
+    # 2. Try native Windows OCR (winocr) - works offline with 0 external binaries on Windows
+    try:
+        import winocr
+        res = winocr.recognize_pil_sync(image)
+        if res and isinstance(res, dict) and res.get("text"):
+            cleaned = _clean_text(res["text"])
+            if len(cleaned) >= settings.ocr_text_threshold:
+                return cleaned
+    except Exception as winocr_err:
+        logger.debug("winocr extraction failed: %s", winocr_err)
+
+    raise OCRUnavailableError(
+        "This page has little/no extractable text and requires OCR, but neither "
+        "Tesseract OCR nor native Windows OCR produced text."
+    )
 
 
 def extract_pages(pdf_path: Path) -> List[PageExtractionResult]:

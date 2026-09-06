@@ -4,9 +4,13 @@ import {
   UploadIcon,
   RefreshIcon,
   CheckIcon,
+  DocumentIcon,
+  LayersIcon,
+  ClockIcon,
+  AlertTriangleIcon,
 } from '../components/icons';
-import { Button } from '../components/common/Button';
 import { Modal } from '../components/common/Modal';
+import { Button } from '../components/common/Button';
 import { Alert } from '../components/common/Alert';
 import { UploadDocument } from '../components/documents/UploadDocument';
 import { DocumentList } from '../components/documents/DocumentList';
@@ -89,55 +93,60 @@ export const DocumentsPage: React.FC = () => {
   const failedCount = documents.filter((d) => d.status === 'FAILED').length;
 
   return (
-    <div className="space-y-5 max-w-7xl mx-auto text-zinc-100">
-      {/* 1. Page Header */}
-      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 pb-3 border-b border-zinc-800/80">
-        <div>
-          <div className="flex items-center space-x-2">
-            <span className="font-mono text-[10px] uppercase tracking-wider text-blue-400 bg-blue-500/10 px-2 py-0.5 rounded border border-blue-500/20 font-medium">
-              Repository
-            </span>
-            <span className="text-zinc-600">·</span>
-            <span className="text-[11px] font-mono text-zinc-400">Local Vector Store</span>
+    <div className="space-y-6 max-w-7xl mx-auto pb-12">
+      {/* 1. Massive Editorial Page Heading matching reference */}
+      <div className="relative pt-2 pb-1">
+        {/* Right side atmospheric branding */}
+        <div className="hidden lg:block absolute right-0 top-0 text-right">
+          <div className="text-[10px] font-bold tracking-[0.25em] text-slate-500 uppercase leading-relaxed">
+            SECURING<br />INFORMATION<br />WORLDWIDE
           </div>
-          <h1 className="text-xl sm:text-2xl font-semibold tracking-tight text-white mt-1">
-            Documents
-          </h1>
-          <p className="text-xs text-zinc-400 mt-0.5">
-            Manage, upload, and inspect PDF files ingested into pgvector.
-          </p>
+          <div className="w-8 h-[1.5px] bg-slate-400 mt-2 ml-auto" />
         </div>
 
-        <div className="flex items-center space-x-2">
-          <Button
-            variant="ghost"
-            size="sm"
-            leftIcon={<RefreshIcon size={14} />}
-            onClick={handleResetData}
-            title="Reset to default seed documents"
-          >
-            Reset Seed Data
-          </Button>
+        <div>
+          <div className="text-[11px] font-bold tracking-[0.28em] text-slate-600 uppercase mb-1">
+            DOCUMENT REPOSITORY
+          </div>
+          <h1 className="text-5xl sm:text-6xl md:text-7xl font-black tracking-tight text-black uppercase leading-none">
+            DOCUMENTS
+          </h1>
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mt-2">
+            <p className="text-xs sm:text-sm font-semibold tracking-[0.25em] text-slate-700 uppercase">
+              YOUR KNOWLEDGE. PRIVATELY INDEXED.
+            </p>
 
-          <Button
-            variant={isUploadSectionOpen ? 'secondary' : 'primary'}
-            size="sm"
-            leftIcon={<UploadIcon size={14} />}
-            onClick={() => setIsUploadSectionOpen(!isUploadSectionOpen)}
-          >
-            {isUploadSectionOpen ? 'Hide Upload Panel' : '+ Upload Document'}
-          </Button>
+            {/* Action Buttons matching reference */}
+            <div className="flex items-center space-x-3">
+              <button
+                onClick={handleResetData}
+                className="bg-white/80 hover:bg-white backdrop-blur-md border border-white/90 shadow-xs px-4 py-2 rounded-xl text-xs font-bold text-slate-800 flex items-center gap-2 transition-all"
+                title="Reset to default seed documents"
+              >
+                <RefreshIcon size={14} className="text-slate-700" />
+                <span>Reset Seed Data</span>
+              </button>
+
+              <button
+                onClick={() => setIsUploadSectionOpen(!isUploadSectionOpen)}
+                className="bg-neutral-900 hover:bg-black text-white px-4 py-2 rounded-xl text-xs font-bold shadow-sm flex items-center gap-2 transition-all"
+              >
+                <UploadIcon size={14} className="text-white" />
+                <span>{isUploadSectionOpen ? 'Hide Upload Panel' : 'Upload Document'}</span>
+              </button>
+            </div>
+          </div>
         </div>
       </div>
 
       {/* Action notification banner */}
       {actionNotice && (
-        <div className="p-3 bg-blue-950/40 border border-blue-800/50 rounded-md text-xs text-blue-200 flex items-center justify-between font-mono">
-          <div className="flex items-center space-x-2">
-            <CheckIcon size={14} className="text-blue-400" />
-            <span>{actionNotice}</span>
+        <div className="p-3.5 bg-white/40 backdrop-blur-xl border border-white/60 rounded-xl text-xs text-slate-900 flex items-center justify-between shadow-xs font-mono">
+          <div className="flex items-center space-x-2.5">
+            <CheckIcon size={16} className="text-emerald-600" />
+            <span className="font-semibold">{actionNotice}</span>
           </div>
-          <button onClick={() => setActionNotice(null)} className="text-zinc-400 hover:text-white">
+          <button onClick={() => setActionNotice(null)} className="text-slate-500 hover:text-black font-bold">
             ✕
           </button>
         </div>
@@ -145,16 +154,16 @@ export const DocumentsPage: React.FC = () => {
 
       {/* Offline Mode Status Pill */}
       {isOfflineMode && (
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 px-3.5 py-2 rounded-lg bg-amber-500/10 border border-amber-500/25 text-amber-300 text-xs font-mono">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 px-4 py-2.5 rounded-xl bg-amber-50/45 backdrop-blur-xl border border-amber-200/50 text-amber-950 text-xs font-mono shadow-xs">
           <div className="flex items-center space-x-2.5">
-            <span className="h-2 w-2 rounded-full bg-amber-400 animate-pulse shrink-0" />
-            <span className="font-semibold text-amber-200">Offline Mode (Local Enclave Fixtures)</span>
-            <span className="text-amber-400/70 hidden md:inline">· Air-gapped local seed store active</span>
+            <span className="h-2 w-2 rounded-full bg-amber-500 animate-pulse shrink-0" />
+            <span className="font-bold">Offline Mode (Local Enclave Fixtures)</span>
+            <span className="text-amber-900/70 hidden md:inline">· Air-gapped local seed store active</span>
           </div>
           <button
             onClick={loadDocuments}
             disabled={isLoading}
-            className="px-2.5 py-1 rounded bg-amber-500/20 hover:bg-amber-500/30 border border-amber-500/40 text-amber-200 text-xs font-medium transition-colors flex items-center gap-1.5 self-start sm:self-auto disabled:opacity-50"
+            className="px-3 py-1 rounded-lg bg-amber-100/70 hover:bg-amber-100 border border-amber-300/80 text-amber-950 text-xs font-bold transition-colors flex items-center gap-1.5 self-start sm:self-auto disabled:opacity-50"
           >
             <RefreshIcon size={12} className={isLoading ? 'animate-spin' : ''} />
             <span>{isLoading ? 'Checking...' : 'Connect Live Backend'}</span>
@@ -162,53 +171,91 @@ export const DocumentsPage: React.FC = () => {
         </div>
       )}
 
-      {/* 2. Repository Overview Strip */}
-      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 text-xs font-mono">
-        <div className="p-3 rounded-md bg-[#121215] border border-zinc-800/80">
-          <span className="text-[10px] text-zinc-500 uppercase tracking-wider block">Total Documents</span>
-          <div className="flex items-baseline space-x-2 mt-1">
-            <span className="text-xl font-semibold text-white tracking-tight">{documents.length}</span>
-            <span className="text-zinc-500 text-[10px]">PDFs</span>
+      {/* 2. Four Prominent Stat Cards matching reference */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        {/* Card 1: Total Documents */}
+        <div className="kavach-glass-card p-5 flex items-center space-x-4">
+          <div className="p-3 rounded-xl bg-white/40 text-slate-800 shrink-0 shadow-xs border border-white/50 backdrop-blur-sm">
+            <DocumentIcon size={22} />
+          </div>
+          <div>
+            <div className="text-3xl font-black text-black font-mono leading-none">
+              {documents.length}
+            </div>
+            <div className="text-[11px] font-bold tracking-wider text-slate-900 uppercase mt-1">
+              TOTAL DOCUMENTS
+            </div>
+            <div className="text-[11px] text-slate-600 font-medium">
+              PDFs in repository
+            </div>
           </div>
         </div>
 
-        <div className="p-3 rounded-md bg-[#121215] border border-zinc-800/80">
-          <span className="text-[10px] text-zinc-500 uppercase tracking-wider block">Ready for Query</span>
-          <div className="flex items-baseline space-x-2 mt-1">
-            <span className="text-xl font-semibold text-emerald-400 tracking-tight">{readyCount}</span>
-            <span className="text-emerald-500/70 text-[10px]">Indexed</span>
+        {/* Card 2: Ready For Query */}
+        <div className="kavach-glass-card p-5 flex items-center space-x-4">
+          <div className="p-3 rounded-xl bg-white/40 text-emerald-800 shrink-0 shadow-xs border border-white/50 backdrop-blur-sm">
+            <LayersIcon size={22} />
+          </div>
+          <div>
+            <div className="text-3xl font-black text-black font-mono leading-none">
+              {readyCount}
+            </div>
+            <div className="text-[11px] font-bold tracking-wider text-slate-900 uppercase mt-1">
+              READY FOR QUERY
+            </div>
+            <div className="text-[11px] text-slate-600 font-medium">
+              Indexed
+            </div>
           </div>
         </div>
 
-        <div className="p-3 rounded-md bg-[#121215] border border-zinc-800/80">
-          <span className="text-[10px] text-zinc-500 uppercase tracking-wider block">Processing</span>
-          <div className="flex items-baseline space-x-2 mt-1">
-            <span className="text-xl font-semibold text-blue-400 tracking-tight">{processingCount}</span>
-            <span className="text-zinc-500 text-[10px]">Active</span>
+        {/* Card 3: Processing */}
+        <div className="kavach-glass-card p-5 flex items-center space-x-4">
+          <div className="p-3 rounded-xl bg-white/40 text-blue-800 shrink-0 shadow-xs border border-white/50 backdrop-blur-sm">
+            <ClockIcon size={22} />
+          </div>
+          <div>
+            <div className="text-3xl font-black text-black font-mono leading-none">
+              {processingCount}
+            </div>
+            <div className="text-[11px] font-bold tracking-wider text-slate-900 uppercase mt-1">
+              PROCESSING
+            </div>
+            <div className="text-[11px] text-slate-600 font-medium">
+              Active
+            </div>
           </div>
         </div>
 
-        <div className="p-3 rounded-md bg-[#121215] border border-zinc-800/80">
-          <span className="text-[10px] text-zinc-500 uppercase tracking-wider block">Failed Ingestion</span>
-          <div className="flex items-baseline space-x-2 mt-1">
-            <span className={`text-xl font-semibold tracking-tight ${failedCount > 0 ? 'text-rose-400' : 'text-zinc-400'}`}>
+        {/* Card 4: Failed Ingestion */}
+        <div className="kavach-glass-card p-5 flex items-center space-x-4">
+          <div className="p-3 rounded-xl bg-white/40 text-rose-800 shrink-0 shadow-xs border border-white/50 backdrop-blur-sm">
+            <AlertTriangleIcon size={22} />
+          </div>
+          <div>
+            <div className="text-3xl font-black text-black font-mono leading-none">
               {failedCount}
-            </span>
-            <span className="text-zinc-500 text-[10px]">Errors</span>
+            </div>
+            <div className="text-[11px] font-bold tracking-wider text-slate-900 uppercase mt-1">
+              FAILED INGESTION
+            </div>
+            <div className="text-[11px] text-slate-600 font-medium">
+              Errors
+            </div>
           </div>
         </div>
       </div>
 
-      {/* 3. Upload Drawer */}
+      {/* 3. Collapsible Upload Section */}
       {isUploadSectionOpen && (
-        <div className="p-5 bg-[#121215] border border-zinc-800/90 rounded-lg space-y-3 shadow-md">
-          <div className="flex items-center justify-between pb-2 border-b border-zinc-800/80">
-            <h3 className="text-xs font-semibold text-zinc-100 uppercase tracking-wider font-mono">
-              Upload New Document
+        <div className="kavach-glass-panel p-6 space-y-4">
+          <div className="flex items-center justify-between pb-3 border-b border-slate-200/80">
+            <h3 className="text-xs font-bold text-slate-900 uppercase tracking-widest font-mono">
+              UPLOAD NEW DOCUMENT
             </h3>
             <button
               onClick={() => setIsUploadSectionOpen(false)}
-              className="text-zinc-500 hover:text-zinc-300 text-xs font-mono"
+              className="text-slate-500 hover:text-black text-xs font-mono font-bold"
             >
               Close ✕
             </button>
@@ -225,7 +272,7 @@ export const DocumentsPage: React.FC = () => {
         </div>
       )}
 
-      {/* 4. Document List */}
+      {/* 4. Document List Table */}
       {apiError && !isOfflineMode && (
         <Alert variant="danger" title="BACKEND OFFLINE">
           Unable to reach the local KAVACH service.
@@ -233,9 +280,9 @@ export const DocumentsPage: React.FC = () => {
       )}
 
       {isLoading ? (
-        <div className="p-12 text-center text-zinc-500 font-mono text-xs border border-zinc-800 rounded-lg bg-[#121215] space-y-2">
-          <div className="inline-block h-6 w-6 border-2 border-zinc-500 border-t-blue-400 rounded-full animate-spin" />
-          <p>Loading repository...</p>
+        <div className="p-16 text-center text-slate-500 font-mono text-xs kavach-glass-panel space-y-3">
+          <div className="inline-block h-7 w-7 border-2 border-slate-400 border-t-neutral-900 rounded-full animate-spin" />
+          <p className="font-semibold text-slate-700">Loading document repository...</p>
         </div>
       ) : (
         <DocumentList
@@ -251,7 +298,30 @@ export const DocumentsPage: React.FC = () => {
         />
       )}
 
-      {/* 5. Confirm Delete Modal */}
+      {/* 5. Editorial Ambient Watermark matching reference */}
+      <div className="pt-8 pb-4 flex flex-col md:flex-row items-start md:items-end justify-between gap-6 select-none opacity-85">
+        <div className="flex items-center space-x-3 text-slate-600 font-semibold tracking-[0.25em] text-[10px] uppercase">
+          <div className="w-10 h-[1.5px] bg-slate-500" />
+          <div>
+            SENSITIVE INFORMATION.<br />
+            A MORE SECURE TOMORROW.
+          </div>
+        </div>
+
+        <div className="text-right">
+          <div className="text-[9px] font-bold tracking-[0.25em] text-slate-500 uppercase">
+            PRIVATE AI FOR A SAFER TOMORROW
+          </div>
+          <div className="text-xl font-black tracking-tight text-black uppercase leading-none mt-1">
+            KAVACH
+          </div>
+          <div className="text-[8px] font-semibold tracking-[0.25em] text-slate-500 uppercase">
+            DOCUMENT INTELLIGENCE
+          </div>
+        </div>
+      </div>
+
+      {/* 6. Confirm Delete Modal */}
       {docToDelete && (
         <Modal
           isOpen={true}
@@ -269,12 +339,13 @@ export const DocumentsPage: React.FC = () => {
             </div>
           }
         >
-          <div className="p-3 rounded bg-zinc-900/80 border border-zinc-800 text-xs font-mono space-y-1">
-            <p className="text-zinc-300 font-semibold">{docToDelete.title}</p>
-            <p className="text-zinc-500 text-[11px]">{docToDelete.filename} · {docToDelete.chunk_count} chunks</p>
+          <div className="p-3.5 rounded-xl bg-slate-100/90 border border-slate-200 text-xs font-mono space-y-1">
+            <p className="text-slate-900 font-bold">{docToDelete.title}</p>
+            <p className="text-slate-600 text-[11px]">{docToDelete.filename} · {docToDelete.chunk_count} chunks</p>
           </div>
         </Modal>
       )}
     </div>
   );
 };
+

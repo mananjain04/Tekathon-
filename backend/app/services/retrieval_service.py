@@ -19,6 +19,7 @@ Deliberately stops here: no RAG prompt construction, no LLM call. Callers
 get raw ranked chunks with enough metadata (document_id,
 page_id/page_number, chunk_index, text) for later citation generation.
 """
+import uuid
 from typing import Dict, List, Optional
 
 from sqlalchemy import select
@@ -42,7 +43,12 @@ def _validate_top_k(top_k: int) -> None:
         raise RetrievalError(f"top_k must be between 1 and {settings.retrieval_top_k_max} (got {top_k}).")
 
 
-def search(db: Session, query: str, top_k: Optional[int] = None) -> List[Dict]:
+def search(
+    db: Session,
+    query: str,
+    top_k: Optional[int] = None,
+    document_id: Optional[uuid.UUID] = None,
+) -> List[Dict]:
     """
     Returns a list of dicts, ranked most-similar-first, each with:
     chunk_id, document_id, page_id, page_number, chunk_index, text,
@@ -50,12 +56,8 @@ def search(db: Session, query: str, top_k: Optional[int] = None) -> List[Dict]:
     and distance (the raw cosine distance, kept for debugging).
 
     Only considers chunks with a non-null embedding belonging to a
-    document whose status is INDEXED -- so a document that's mid-reprocess
-    (partially embedded) or FAILED never contributes stale/partial
-    results. Returns [] cleanly (never raises) if no such chunks exist yet.
-
-    Raises RetrievalError for an empty/whitespace query, an out-of-range
-    top_k, or a query-embedding failure -- never for an empty database.
+    document whose status is INDEXED. If document_id is specified, filters
+    results strictly to that document.
     """
     if query is None or not query.strip():
         raise RetrievalError("Query must not be empty.")
@@ -75,9 +77,11 @@ def search(db: Session, query: str, top_k: Optional[int] = None) -> List[Dict]:
         .join(Document, Chunk.document_id == Document.id)
         .where(Chunk.embedding.is_not(None))
         .where(Document.status == DocumentStatus.INDEXED)
-        .order_by(distance_col.asc())
-        .limit(top_k)
     )
+    if document_id is not None:
+        stmt = stmt.where(Chunk.document_id == document_id)
+
+    stmt = stmt.order_by(distance_col.asc()).limit(top_k)
 
     rows = db.execute(stmt).all()
 
@@ -99,28 +103,18 @@ def search(db: Session, query: str, top_k: Optional[int] = None) -> List[Dict]:
     return results
 
 
-def search_with_rerank(db: Session, query: str, top_k: Optional[int] = None, rerank: bool = True) -> List[Dict]:
+def search_with_rerank(
+    db: Session,
+    query: str,
+    top_k: Optional[int] = None,
+    rerank: bool = True,
+    document_id: Optional[uuid.UUID] = None,
+) -> List[Dict]:
     """
-    Phase 4B orchestration layer: runs Phase 4A's search() UNCHANGED to get
-    the pgvector-ranked candidates, then -- if rerank=True and search()
-    returned at least one result -- passes those exact result dicts
-    through the local cross-encoder (app/services/reranker_service.py) to
-    re-sort them and attach a "rerank_score" key. Every other key
-    (chunk_id, document_id, page_id, page_number, chunk_index, text,
-    similarity, distance) is preserved exactly as search() produced it.
-
-    If rerank=False, or there are no candidates to re-rank, each result
-    dict gets "rerank_score": None added (so callers/serializers can rely
-    on the key always being present) and the pgvector similarity ordering
-    from search() is left untouched.
-
-    Raises the same RetrievalError as search() for an empty/whitespace
-    query, an out-of-range top_k, or a query-embedding failure. Also
-    raises RetrievalError (wrapping the underlying RerankerModelError) if
-    the cross-encoder fails to load or score -- it never raises just
-    because there were zero candidates to rank.
+    Phase 4B orchestration layer: runs search() with optional document_id filter,
+    then passes candidates through local cross-encoder reranker if rerank=True.
     """
-    results = search(db, query, top_k)
+    results = search(db, query, top_k, document_id=document_id)
 
     if not rerank or not results:
         for result in results:

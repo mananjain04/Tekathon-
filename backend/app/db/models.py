@@ -57,6 +57,10 @@ class Document(Base):
     pages = relationship("Page", back_populates="document", cascade="all, delete-orphan")
     chunks = relationship("Chunk", back_populates="document", cascade="all, delete-orphan")
 
+    @property
+    def chunk_count(self) -> int:
+        return len(self.chunks) if self.chunks else 0
+
 
 class Page(Base):
     __tablename__ = "pages"

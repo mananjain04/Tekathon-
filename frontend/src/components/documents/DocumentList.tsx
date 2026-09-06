@@ -1,7 +1,6 @@
 import React, { useState } from 'react';
 import { DocumentItem } from '../../types';
 import { DocumentCard } from './DocumentCard';
-import { Input } from '../common/Input';
 import { Button } from '../common/Button';
 import { Badge } from '../common/Badge';
 import {
@@ -12,7 +11,6 @@ import {
   RotateCwIcon,
   TrashIcon,
   FileTextIcon,
-  CheckIcon,
   AlertTriangleIcon,
   DocumentIcon
 } from '../icons';
@@ -80,23 +78,27 @@ export const DocumentList: React.FC<DocumentListProps> = ({
 
   return (
     <div className={`space-y-4 ${className}`}>
-      {/* Search & Filter Toolbar */}
-      <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 bg-[#121215] p-3 rounded-lg border border-zinc-800/80">
-        <div className="flex-1 max-w-sm">
-          <Input
+      {/* Search & Filter Toolbar matching reference */}
+      <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 bg-white/75 backdrop-blur-xl p-3.5 rounded-2xl border border-white/80 shadow-xs">
+        <div className="flex-1 max-w-sm relative">
+          <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-400">
+            <SearchIcon size={14} />
+          </div>
+          <input
+            type="text"
             placeholder="Filter documents..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            leftIcon={<SearchIcon size={14} />}
+            className="w-full pl-9 pr-3 py-2 bg-white/40 backdrop-blur-md border border-white/60 rounded-xl text-xs text-slate-900 placeholder:text-slate-500 focus:outline-none focus:border-slate-900 focus:bg-white/60 font-medium transition-all shadow-xs"
           />
         </div>
 
-        <div className="flex items-center space-x-2">
+        <div className="flex items-center space-x-2.5">
           {/* Status Filter */}
           <select
             value={selectedStatus}
             onChange={(e) => setSelectedStatus(e.target.value)}
-            className="rounded border border-zinc-800 bg-[#18181b] px-2.5 py-1.5 text-xs text-zinc-200 focus:outline-none focus:border-blue-500 font-mono"
+            className="rounded-xl border border-white/60 bg-white/40 backdrop-blur-md px-3 py-2 text-xs text-slate-800 font-semibold focus:outline-none focus:border-slate-900 shadow-xs font-mono"
           >
             <option value="ALL">All Statuses</option>
             <option value="READY">Ready</option>
@@ -105,13 +107,13 @@ export const DocumentList: React.FC<DocumentListProps> = ({
           </select>
 
           {/* View Toggle */}
-          <div className="flex items-center rounded border border-zinc-800 bg-[#18181b] p-0.5">
+          <div className="flex items-center rounded-xl border border-white/60 bg-white/40 backdrop-blur-md p-1 shadow-xs">
             <button
               onClick={() => setViewMode('table')}
-              className={`p-1.5 rounded text-xs transition-colors ${
+              className={`p-1.5 rounded-lg text-xs transition-all ${
                 viewMode === 'table'
-                  ? 'bg-blue-600/15 text-blue-400 border border-blue-500/30'
-                  : 'text-zinc-400 hover:text-zinc-200'
+                  ? 'bg-neutral-900 text-white shadow-xs'
+                  : 'text-slate-600 hover:text-black'
               }`}
               title="Table View"
             >
@@ -119,10 +121,10 @@ export const DocumentList: React.FC<DocumentListProps> = ({
             </button>
             <button
               onClick={() => setViewMode('grid')}
-              className={`p-1.5 rounded text-xs transition-colors ${
+              className={`p-1.5 rounded-lg text-xs transition-all ${
                 viewMode === 'grid'
-                  ? 'bg-blue-600/15 text-blue-400 border border-blue-500/30'
-                  : 'text-zinc-400 hover:text-zinc-200'
+                  ? 'bg-neutral-900 text-white shadow-xs'
+                  : 'text-slate-600 hover:text-black'
               }`}
               title="Grid View"
             >
@@ -131,25 +133,24 @@ export const DocumentList: React.FC<DocumentListProps> = ({
           </div>
 
           {onToggleUpload && (
-            <Button
-              variant={isUploadOpen ? 'secondary' : 'primary'}
-              size="sm"
-              leftIcon={<UploadIcon size={14} />}
+            <button
               onClick={onToggleUpload}
+              className="bg-white/40 hover:bg-white/65 backdrop-blur-md border border-white/60 shadow-xs px-3.5 py-2 rounded-xl text-xs font-bold text-slate-800 flex items-center gap-1.5 transition-all"
             >
-              {isUploadOpen ? 'Close Upload' : 'Add Document'}
-            </Button>
+              <UploadIcon size={14} className="text-slate-700" />
+              <span>{isUploadOpen ? 'Close Upload' : 'Upload'}</span>
+            </button>
           )}
         </div>
       </div>
 
       {/* Empty State */}
       {documents.length === 0 && (
-        <div className="border border-zinc-800 rounded-lg p-12 text-center bg-[#121215] space-y-3 font-mono">
-          <FileTextIcon size={28} className="mx-auto text-zinc-600 mb-1" />
-          <h3 className="text-sm font-semibold text-zinc-200 tracking-wider uppercase">NO DOCUMENTS</h3>
-          <p className="text-xs text-zinc-400 max-w-sm mx-auto font-sans">
-            Your secure knowledge repository is empty.
+        <div className="kavach-glass-panel p-16 text-center space-y-3 font-mono">
+          <FileTextIcon size={32} className="mx-auto text-slate-400 mb-1" />
+          <h3 className="text-sm font-bold text-slate-900 tracking-wider uppercase">NO DOCUMENTS FOUND</h3>
+          <p className="text-xs text-slate-500 max-w-sm mx-auto font-sans">
+            Your secure sovereign knowledge repository is currently empty.
           </p>
           {onToggleUpload && (
             <div className="pt-2">
@@ -167,79 +168,78 @@ export const DocumentList: React.FC<DocumentListProps> = ({
       )}
 
       {documents.length > 0 && filteredDocs.length === 0 && (
-        <div className="border border-zinc-800 rounded-lg p-10 text-center bg-[#121215]">
-          <FileTextIcon size={24} className="mx-auto text-zinc-600 mb-2" />
-          <h3 className="text-xs font-medium text-zinc-200">No matching documents found</h3>
-          <p className="text-[11px] text-zinc-500 mt-1 max-w-sm mx-auto font-sans">
-            Try adjusting search terms or clear filters.
+        <div className="kavach-glass-panel p-12 text-center">
+          <FileTextIcon size={28} className="mx-auto text-slate-400 mb-2" />
+          <h3 className="text-xs font-bold text-slate-800">No matching documents found</h3>
+          <p className="text-[11px] text-slate-500 mt-1 max-w-sm mx-auto font-sans">
+            Try adjusting your search terms or status filters.
           </p>
         </div>
       )}
 
-      {/* TABLE VIEW */}
+      {/* TABLE VIEW matching reference design */}
       {filteredDocs.length > 0 && viewMode === 'table' && (
-        <div className="bg-[#121215] border border-zinc-800/80 rounded-lg overflow-hidden">
+        <div className="kavach-glass-panel overflow-hidden border border-white/60 shadow-lg">
           <div className="overflow-x-auto">
             <table className="w-full text-left text-xs font-mono">
-              <thead className="bg-[#18181b] text-zinc-400 uppercase text-[10px] tracking-wider border-b border-zinc-800">
+              <thead className="bg-white/20 text-slate-700 uppercase text-[10px] tracking-widest border-b border-white/40 font-bold backdrop-blur-md">
                 <tr>
-                  <th className="py-2.5 px-3.5">Document</th>
-                  <th className="py-2.5 px-3">Status</th>
-                  <th className="py-2.5 px-3">Pages</th>
-                  <th className="py-2.5 px-3">Chunks</th>
-                  <th className="py-2.5 px-3">Ingested</th>
-                  <th className="py-2.5 px-3.5 text-right">Action</th>
+                  <th className="py-3 px-4">DOCUMENT</th>
+                  <th className="py-3 px-3">STATUS</th>
+                  <th className="py-3 px-3">PAGES</th>
+                  <th className="py-3 px-3">CHUNKS</th>
+                  <th className="py-3 px-3">INGESTED</th>
+                  <th className="py-3 px-4 text-right">ACTION</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-zinc-800/50">
+              <tbody className="divide-y divide-white/30 bg-transparent">
                 {filteredDocs.map((doc) => {
-                  const isReady = doc.status === 'READY' || doc.status === 'PROCESSED';
-                  const isProcessing = doc.status === 'PROCESSING' || doc.status === 'INDEXING';
+                  const isReady = doc.status === 'READY' || doc.status === 'PROCESSED' || doc.status === 'INDEXED';
+                  const isProcessing = doc.status === 'PROCESSING' || doc.status === 'INDEXING' || doc.status === 'OCR_COMPLETE' || doc.status === 'EMBEDDING' || doc.status === 'UPLOADED';
                   const isFailed = doc.status === 'FAILED';
 
                   return (
-                    <tr key={doc.id} className="hover:bg-zinc-800/25 transition-colors">
-                      <td className="py-3 px-3.5 max-w-xs">
-                        <div className="flex items-start space-x-2.5">
-                          <div className="p-1 rounded bg-blue-600/10 border border-blue-500/20 text-blue-400 shrink-0 mt-0.5">
-                            <DocumentIcon size={14} />
+                    <tr key={doc.id} className="hover:bg-white/40 transition-colors">
+                      <td className="py-3.5 px-4 max-w-xs">
+                        <div className="flex items-start space-x-3">
+                          <div className="p-2 rounded-xl bg-white/50 border border-white/60 text-slate-800 shrink-0 mt-0.5 shadow-xs">
+                            <DocumentIcon size={16} />
                           </div>
                           <div className="min-w-0">
                             <div
                               onClick={() => onOpenDoc(doc)}
-                              className="font-medium text-zinc-200 hover:text-blue-400 transition-colors cursor-pointer truncate text-xs"
+                              className="font-bold text-slate-950 hover:text-blue-700 transition-colors cursor-pointer truncate text-xs"
                               title={doc.filename}
                             >
                               {doc.filename}
                             </div>
-                            <div className="text-[10px] text-zinc-500 truncate flex items-center gap-1.5 mt-0.5 font-sans">
-                              <span>PDF</span>
+                            <div className="text-[10px] text-slate-500 truncate flex items-center gap-1.5 mt-0.5 font-sans">
+                              <span className="font-semibold text-slate-600">PDF</span>
                               <span>·</span>
                               <span>{formatBytes(doc.file_size)}</span>
                               <span>·</span>
-                              <span className="truncate max-w-[120px]">{doc.department}</span>
+                              <span className="truncate max-w-[140px] text-slate-500">{doc.department || 'Enclave Operations'}</span>
                             </div>
                           </div>
                         </div>
                       </td>
 
-                      <td className="py-3 px-3">
+                      <td className="py-3.5 px-3">
                         {isReady && (
-                          <span className="inline-flex items-center gap-1 text-[10px] px-2 py-0.5 rounded bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 whitespace-nowrap">
-                            <CheckIcon size={10} className="stroke-[2.5]" />
-                            ✓ Ready for Query
+                          <span className="inline-flex items-center gap-1 text-[10px] px-2.5 py-0.5 rounded-full bg-emerald-100 text-emerald-800 font-bold uppercase tracking-wider font-mono shadow-xs border border-emerald-200/60">
+                            INDEXED
                           </span>
                         )}
                         {isProcessing && (
-                          <span className="inline-flex items-center gap-1 text-[10px] px-2 py-0.5 rounded bg-blue-500/10 text-blue-400 border border-blue-500/20 whitespace-nowrap">
+                          <span className="inline-flex items-center gap-1 text-[10px] px-2.5 py-0.5 rounded-full bg-blue-100 text-blue-800 font-bold uppercase tracking-wider font-mono shadow-xs border border-blue-200/60">
                             <RotateCwIcon size={10} className="animate-spin" />
-                            Processing document
+                            PROCESSING
                           </span>
                         )}
                         {isFailed && (
-                          <span className="inline-flex items-center gap-1 text-[10px] px-2 py-0.5 rounded bg-rose-500/10 text-rose-400 border border-rose-500/20 whitespace-nowrap">
+                          <span className="inline-flex items-center gap-1 text-[10px] px-2.5 py-0.5 rounded-full bg-rose-100 text-rose-800 font-bold uppercase tracking-wider font-mono shadow-xs border border-rose-200/60">
                             <AlertTriangleIcon size={10} />
-                            Processing failed
+                            FAILED
                           </span>
                         )}
                         {!isReady && !isProcessing && !isFailed && (
@@ -249,31 +249,32 @@ export const DocumentList: React.FC<DocumentListProps> = ({
                         )}
                       </td>
 
-                      <td className="py-3 px-3 text-zinc-400 text-xs">
-                        {doc.page_count ? `${doc.page_count} pgs` : '—'}
+                      <td className="py-3.5 px-3 text-slate-800 font-medium text-xs font-mono">
+                        {doc.page_count ? `${doc.page_count} pgs` : '1 pgs'}
                       </td>
 
-                      <td className="py-3 px-3 text-blue-400 text-xs">
+                      <td className="py-3.5 px-3 text-sky-600 font-bold text-xs font-mono">
                         {doc.chunk_count}
                       </td>
 
-                      <td className="py-3 px-3 text-zinc-500 text-[11px]">
+                      <td className="py-3.5 px-3 text-slate-600 text-[11px] font-mono">
                         {formatDate(doc.uploaded_at)}
                       </td>
 
-                      <td className="py-3 px-3.5 text-right font-sans">
+                      <td className="py-3.5 px-4 text-right font-sans">
                         <div className="flex items-center justify-end space-x-2">
                           <button
                             onClick={() => onOpenDoc(doc)}
-                            className="px-2 py-1 rounded text-xs text-zinc-300 hover:text-white hover:bg-zinc-800 transition-colors"
+                            className="px-2.5 py-1 rounded-lg text-xs font-bold text-slate-800 hover:text-black hover:bg-slate-100/80 transition-colors flex items-center gap-1"
                           >
-                            Details
+                            <span>Details</span>
+                            <span>→</span>
                           </button>
 
                           {isReady && (
                             <button
                               onClick={() => onAskAI(doc)}
-                              className="px-2 py-1 rounded text-xs bg-blue-600/15 text-blue-400 hover:bg-blue-600/25 border border-blue-500/20 transition-colors font-medium"
+                              className="px-2.5 py-1 rounded-lg text-xs bg-neutral-900 text-white hover:bg-black font-bold shadow-xs transition-colors"
                             >
                               Query
                             </button>
@@ -283,7 +284,7 @@ export const DocumentList: React.FC<DocumentListProps> = ({
                             <button
                               onClick={() => onRetryDoc(doc)}
                               disabled={retryingId === doc.id}
-                              className="px-2 py-1 rounded text-xs bg-rose-500/10 text-rose-400 hover:bg-rose-500/20 border border-rose-500/20 transition-colors font-medium flex items-center gap-1"
+                              className="px-2.5 py-1 rounded-lg text-xs bg-rose-600 text-white hover:bg-rose-700 font-bold shadow-xs transition-colors flex items-center gap-1"
                             >
                               {retryingId === doc.id ? (
                                 <RotateCwIcon size={11} className="animate-spin" />
@@ -294,10 +295,10 @@ export const DocumentList: React.FC<DocumentListProps> = ({
 
                           <button
                             onClick={() => onDeleteDoc(doc)}
-                            className="p-1 rounded text-zinc-500 hover:text-rose-400 hover:bg-zinc-800 transition-colors"
+                            className="p-1.5 rounded-lg text-slate-400 hover:text-rose-600 hover:bg-slate-100/80 transition-colors"
                             title="Delete"
                           >
-                            <TrashIcon size={13} />
+                            <TrashIcon size={14} />
                           </button>
                         </div>
                       </td>

@@ -36,16 +36,16 @@ export const ChatWindow: React.FC<ChatWindowProps> = ({
   }, [messages, isProcessing, processingStage]);
 
   return (
-    <div className="flex-1 flex flex-col overflow-hidden bg-[#09090b]">
+    <div className="flex-1 flex flex-col overflow-hidden bg-transparent">
       {/* Top Session Sub-Header */}
-      <div className="bg-[#121215] border-b border-zinc-800/80 px-4 py-2 flex items-center justify-between shrink-0">
+      <div className="bg-white/60 border-b border-zinc-200/80 px-5 py-2.5 flex items-center justify-between shrink-0 backdrop-blur-md">
         <div className="flex items-center space-x-2.5">
-          <div className="p-1 rounded bg-blue-500/10 text-blue-400 border border-blue-500/20">
+          <div className="p-1 rounded bg-zinc-100 text-zinc-900 border border-zinc-200">
             <ChatIcon size={14} />
           </div>
           <div>
             <div className="flex items-center space-x-2">
-              <span className="text-xs font-medium text-zinc-200">Session Dialogue</span>
+              <span className="text-xs font-bold text-zinc-900">Session Dialogue</span>
             </div>
             <p className="text-[10px] text-zinc-500 font-mono">
               {selectedDocument
@@ -63,7 +63,7 @@ export const ChatWindow: React.FC<ChatWindowProps> = ({
               leftIcon={<RefreshIcon size={12} />}
               onClick={onClearSession}
               title="Clear dialogue"
-              className="text-xs text-zinc-400 hover:text-zinc-200"
+              className="text-xs text-zinc-600 hover:text-zinc-950 hover:bg-white/80"
             >
               Clear
             </Button>

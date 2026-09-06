@@ -13,6 +13,7 @@ export {
   clearAuthToken,
   getAuthHeaders,
   ensureAuthToken,
+  authenticatedFetch,
 } from './client';
 
 export type {

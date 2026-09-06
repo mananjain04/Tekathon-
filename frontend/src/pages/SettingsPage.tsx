@@ -133,28 +133,33 @@ export const SettingsPage: React.FC = () => {
   }
 
   return (
-    <div className="space-y-6 max-w-5xl mx-auto text-zinc-100">
+    <div className="space-y-6 max-w-5xl mx-auto text-zinc-900">
       {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-2 border-b border-zinc-800/80">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-zinc-200/80">
         <div>
-          <h2 className="text-xl font-semibold text-white tracking-tight">Pipeline & System Configuration</h2>
-          <p className="text-xs text-zinc-400 mt-0.5">
-            Configure local embedding models, pgvector indexing, and inference parameters.
+          <div className="text-[11px] font-mono uppercase tracking-widest text-zinc-500 font-bold">
+            SYSTEM ARCHITECTURE
+          </div>
+          <h2 className="text-2xl font-black text-zinc-950 tracking-tight font-mono">
+            PIPELINE & INFERENCE SETTINGS
+          </h2>
+          <p className="text-xs text-zinc-600 mt-0.5">
+            Configure local embedding models, pgvector dense indexing, and inference parameters.
           </p>
         </div>
 
         <div className="flex items-center space-x-2">
           {hasUnsavedChanges ? (
-            <span className="text-[11px] font-mono px-2 py-0.5 rounded bg-amber-500/15 text-amber-300 border border-amber-500/30 flex items-center gap-1.5">
-              <span className="h-1.5 w-1.5 rounded-full bg-amber-400 animate-pulse" />
-              Unsaved Changes
+            <span className="status-pill-warning">
+              <span className="h-1.5 w-1.5 rounded-full bg-amber-500 animate-pulse" />
+              UNSAVED CHANGES
             </span>
           ) : (
-            <span className="text-[11px] font-mono px-2 py-0.5 rounded bg-zinc-800 text-zinc-400 border border-zinc-700/60">
-              Synced
+            <span className="status-pill-online">
+              SYNCED TO NODE
             </span>
           )}
-          <Button variant="ghost" size="sm" onClick={handleReset} type="button">
+          <Button variant="outline" size="sm" onClick={handleReset} type="button" className="bg-white/70 text-zinc-800 border-zinc-300">
             Reset to Defaults
           </Button>
         </div>
@@ -177,10 +182,10 @@ export const SettingsPage: React.FC = () => {
         <Card>
           <CardHeader>
             <div className="flex items-center space-x-2">
-              <ShieldIcon size={16} className="text-blue-500" />
+              <ShieldIcon size={16} className="text-zinc-950" />
               <CardTitle>Host Node Identity</CardTitle>
             </div>
-            <Badge variant="success" size="sm">NODE ACTIVE</Badge>
+            <span className="status-pill-online text-[10px]">NODE ACTIVE</span>
           </CardHeader>
           <CardContent className="space-y-4">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -205,21 +210,21 @@ export const SettingsPage: React.FC = () => {
         <Card>
           <CardHeader>
             <div className="flex items-center space-x-2">
-              <CpuIcon size={16} className="text-blue-500" />
+              <CpuIcon size={16} className="text-zinc-950" />
               <CardTitle>AI Models & Inference</CardTitle>
             </div>
-            <Badge variant="outline" size="sm">ON-PREMISE</Badge>
+            <span className="status-pill-local text-[10px]">ON-PREMISE</span>
           </CardHeader>
           <CardContent className="space-y-4">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="space-y-1.5">
-                <label className="block text-xs font-medium text-zinc-300">
+                <label className="block text-xs font-bold text-zinc-700">
                   Vector Embedding Model
                 </label>
                 <select
                   value={embeddingModel}
                   onChange={(e) => setEmbeddingModel(e.target.value)}
-                  className="w-full rounded-md border border-zinc-800 bg-zinc-900/90 px-3 py-2 text-xs text-zinc-100 focus:outline-none focus:border-blue-500 font-mono"
+                  className="w-full rounded-md border border-zinc-300 bg-white/90 px-3 py-2 text-xs text-zinc-900 focus:outline-none focus:border-zinc-950 font-mono shadow-sm"
                 >
                   <option value="all-MiniLM-L6-v2">sentence-transformers / all-MiniLM-L6-v2 (384-dim, Active)</option>
                   <option value="bge-small-en-v1.5">BAAI / bge-small-en-v1.5 (384-dim)</option>
@@ -229,13 +234,13 @@ export const SettingsPage: React.FC = () => {
               </div>
 
               <div className="space-y-1.5">
-                <label className="block text-xs font-medium text-zinc-300">
+                <label className="block text-xs font-bold text-zinc-700">
                   Local LLM Inference Engine
                 </label>
                 <select
                   value={llmEngine}
                   onChange={(e) => setLlmEngine(e.target.value)}
-                  className="w-full rounded-md border border-zinc-800 bg-zinc-900/90 px-3 py-2 text-xs text-zinc-100 focus:outline-none focus:border-blue-500 font-mono"
+                  className="w-full rounded-md border border-zinc-300 bg-white/90 px-3 py-2 text-xs text-zinc-900 focus:outline-none focus:border-zinc-950 font-mono shadow-sm"
                 >
                   <option value="Ollama: qwen2.5:7b">Ollama / qwen2.5:7b (Local, Recommended)</option>
                   <option value="Ollama: llama3.1:8b">Ollama / llama3.1:8b (Local)</option>
@@ -309,20 +314,20 @@ export const SettingsPage: React.FC = () => {
             </div>
 
             <div className="pt-2 space-y-2">
-              <div className="flex items-center justify-between p-3 rounded-md bg-zinc-900/60 border border-zinc-800 text-xs">
+              <div className="flex items-center justify-between p-3.5 rounded-xl bg-white/80 border border-white/90 text-xs shadow-sm">
                 <div>
-                  <div className="font-medium text-zinc-200">Network Isolation</div>
-                  <div className="text-zinc-400 text-[11px]">Enforce local-only network socket bindings</div>
+                  <div className="font-bold text-zinc-950">Network Isolation</div>
+                  <div className="text-zinc-500 text-[11px]">Enforce local-only network socket bindings</div>
                 </div>
-                <Badge variant="success" size="sm">ACTIVE</Badge>
+                <span className="status-pill-online text-[10px]">ACTIVE</span>
               </div>
 
-              <div className="flex items-center justify-between p-3 rounded-md bg-zinc-900/60 border border-zinc-800 text-xs">
+              <div className="flex items-center justify-between p-3.5 rounded-xl bg-white/80 border border-white/90 text-xs shadow-sm">
                 <div>
-                  <div className="font-medium text-zinc-200">Cross-Encoder Reranker</div>
-                  <div className="text-zinc-400 text-[11px]">Two-stage retrieval with cross-encoder scoring enabled</div>
+                  <div className="font-bold text-zinc-950">Cross-Encoder Reranker</div>
+                  <div className="text-zinc-500 text-[11px]">Two-stage retrieval with cross-encoder scoring enabled</div>
                 </div>
-                <Badge variant="info" size="sm">ENABLED</Badge>
+                <span className="status-pill-local text-[10px]">ENABLED</span>
               </div>
             </div>
           </CardContent>

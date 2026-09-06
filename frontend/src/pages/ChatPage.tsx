@@ -18,7 +18,7 @@ import { ConversationList } from '../components/chat/ConversationList';
 import { ChatWindow } from '../components/chat/ChatWindow';
 import { ChatInput } from '../components/chat/ChatInput';
 import { EvidenceModal } from '../components/chat/EvidenceModal';
-import { ShieldIcon, MenuIcon, XIcon } from '../components/icons';
+import { MenuIcon, XIcon } from '../components/icons';
 
 export const ChatPage: React.FC = () => {
   const [searchParams, setSearchParams] = useSearchParams();
@@ -320,26 +320,26 @@ export const ChatPage: React.FC = () => {
   const activeMessages = messagesMap[activeConversationId] || [];
 
   return (
-    <div className="h-[calc(100vh-110px)] flex flex-col max-w-7xl mx-auto rounded-lg border border-zinc-800/80 overflow-hidden shadow-sm bg-[#09090b]">
+    <div className="h-[calc(100vh-100px)] flex flex-col max-w-7xl mx-auto rounded-2xl border border-white/80 overflow-hidden shadow-2xl kavach-glass-panel backdrop-blur-2xl">
       {/* 1. TOP WORKBENCH HEADER */}
-      <div className="bg-[#0c0c0e] border-b border-zinc-800/80 px-4 py-2.5 flex items-center justify-between shrink-0 select-none">
+      <div className="bg-white/70 border-b border-zinc-200/80 px-5 py-3 flex items-center justify-between shrink-0 select-none backdrop-blur-md">
         <div className="flex items-center space-x-3">
           <button
             onClick={() => setIsLeftPanelOpen(!isLeftPanelOpen)}
-            className="md:hidden p-1.5 rounded text-zinc-400 hover:text-white hover:bg-zinc-800"
+            className="md:hidden p-1.5 rounded-lg text-zinc-600 hover:text-zinc-950 hover:bg-white/80"
             title="Toggle context drawer"
           >
             {isLeftPanelOpen ? <XIcon size={16} /> : <MenuIcon size={16} />}
           </button>
 
-          <div className="flex items-center space-x-2">
-            <h1 className="text-xs font-semibold text-zinc-100 uppercase tracking-wider font-mono flex items-center gap-1.5">
-              <ShieldIcon size={14} className="text-blue-500" />
-              <span>Query Assistant</span>
+          <div className="flex items-center space-x-2.5">
+            <div className="w-2 h-2 rounded-full bg-zinc-950" />
+            <h1 className="text-xs font-black text-zinc-950 uppercase tracking-widest font-mono flex items-center gap-1.5">
+              <span>QUERY ASSISTANT</span>
             </h1>
-            <span className="hidden sm:inline text-zinc-600">·</span>
-            <span className="hidden sm:inline text-[11px] font-mono text-zinc-400">
-              Grounded Document Retrieval
+            <span className="hidden sm:inline text-zinc-300">/</span>
+            <span className="hidden sm:inline text-[11px] font-mono text-zinc-600 font-medium">
+              GROUNDED DOCUMENT RETRIEVAL
             </span>
           </div>
         </div>
@@ -347,14 +347,14 @@ export const ChatPage: React.FC = () => {
         {/* Right Status */}
         <div className="flex items-center space-x-2 font-mono text-xs">
           {documentApi.isOffline ? (
-            <span className="text-[10px] text-amber-400 bg-amber-500/10 border border-amber-500/20 px-2 py-0.5 rounded font-medium flex items-center gap-1">
-              <span className="h-1.5 w-1.5 rounded-full bg-amber-400" />
-              Offline Enclave Fixtures
+            <span className="status-pill-warning">
+              <span className="h-1.5 w-1.5 rounded-full bg-amber-500" />
+              OFFLINE ENCLAVE
             </span>
           ) : (
-            <span className="text-[10px] text-emerald-400 bg-emerald-500/10 border border-emerald-500/20 px-2 py-0.5 rounded font-medium flex items-center gap-1">
+            <span className="status-pill-online">
               <span className="h-1.5 w-1.5 rounded-full bg-emerald-500" />
-              Local Live Node
+              LOCAL LIVE NODE
             </span>
           )}
         </div>
@@ -364,23 +364,23 @@ export const ChatPage: React.FC = () => {
       <div className="flex flex-1 overflow-hidden relative">
         {isLeftPanelOpen && (
           <div
-            className="fixed inset-0 bg-black/60 z-20 md:hidden backdrop-blur-sm"
+            className="fixed inset-0 bg-black/40 z-20 md:hidden backdrop-blur-sm"
             onClick={() => setIsLeftPanelOpen(false)}
           />
         )}
 
         {/* LEFT PANEL: KNOWLEDGE CONTEXT */}
         <aside
-          className={`w-72 bg-[#0c0c0e] border-r border-zinc-800/80 flex flex-col justify-between p-3.5 space-y-3.5 shrink-0 transition-all duration-200 z-30
+          className={`w-72 bg-white/50 border-r border-zinc-200/80 flex flex-col justify-between p-4 space-y-4 shrink-0 transition-all duration-200 z-30 backdrop-blur-xl
             ${
               isLeftPanelOpen
-                ? 'fixed inset-y-16 left-0 shadow-2xl'
+                ? 'fixed inset-y-16 left-0 shadow-2xl bg-white/95'
                 : 'hidden md:flex'
             }`}
         >
-          <div className="space-y-3.5 overflow-y-auto pr-1">
-            <div className="px-1 text-[10px] font-mono tracking-wider text-zinc-500 uppercase font-semibold">
-              Context & History
+          <div className="space-y-4 overflow-y-auto pr-1">
+            <div className="px-1 text-[10px] font-mono tracking-wider text-zinc-500 uppercase font-bold">
+              KNOWLEDGE CONTEXT
             </div>
 
             {/* Selected Document Card */}
@@ -401,24 +401,24 @@ export const ChatPage: React.FC = () => {
           </div>
 
           {/* Repository Status */}
-          <div className="pt-2 border-t border-zinc-800/80 text-[10px] font-mono text-zinc-400 space-y-1 bg-[#121215] p-2.5 rounded-md border">
+          <div className="pt-2.5 border-t border-zinc-200/80 text-[10px] font-mono text-zinc-600 space-y-1.5 bg-white/60 p-3 rounded-xl border border-white/90 shadow-sm">
             <div className="flex items-center justify-between">
               <span className="text-zinc-500">Vector Index:</span>
-              <span className="text-zinc-300">pgvector (384-d)</span>
+              <span className="text-zinc-900 font-semibold">pgvector (384-d)</span>
             </div>
-            <div className="flex items-center justify-between text-zinc-400">
+            <div className="flex items-center justify-between">
               <span className="text-zinc-500">Inference:</span>
-              <span className="text-zinc-300">Ollama / qwen2.5</span>
+              <span className="text-zinc-900 font-semibold">Ollama · qwen2.5</span>
             </div>
-            <div className="flex items-center justify-between text-zinc-400">
+            <div className="flex items-center justify-between">
               <span className="text-zinc-500">Data Isolation:</span>
-              <span className="text-emerald-400">Private Host</span>
+              <span className="text-emerald-700 font-bold">Private Host</span>
             </div>
           </div>
         </aside>
 
         {/* RIGHT PANEL: AI WORKBENCH */}
-        <section className="flex-1 flex flex-col overflow-hidden bg-[#09090b]">
+        <section className="flex-1 flex flex-col overflow-hidden bg-white/30 backdrop-blur-md">
           {/* Conversation Stream */}
           <ChatWindow
             messages={activeMessages}

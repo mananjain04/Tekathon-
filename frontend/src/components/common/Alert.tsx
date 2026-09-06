@@ -16,24 +16,24 @@ export const Alert: React.FC<AlertProps> = ({
 }) => {
   const styles = {
     info: {
-      container: 'bg-cyan-950/40 border-cyan-800/60 text-cyan-200',
-      icon: <InfoIcon className="text-cyan-400 shrink-0" size={18} />,
-      titleColor: 'text-cyan-300',
+      container: 'bg-blue-50/90 border-blue-200 text-blue-950 shadow-sm backdrop-blur-md',
+      icon: <InfoIcon className="text-blue-700 shrink-0" size={18} />,
+      titleColor: 'text-blue-950 font-bold',
     },
     warning: {
-      container: 'bg-amber-950/40 border-amber-800/60 text-amber-200',
-      icon: <AlertTriangleIcon className="text-amber-400 shrink-0" size={18} />,
-      titleColor: 'text-amber-300',
+      container: 'bg-amber-50/90 border-amber-200 text-amber-950 shadow-sm backdrop-blur-md',
+      icon: <AlertTriangleIcon className="text-amber-700 shrink-0" size={18} />,
+      titleColor: 'text-amber-950 font-bold',
     },
     danger: {
-      container: 'bg-rose-950/40 border-rose-800/60 text-rose-200',
-      icon: <AlertTriangleIcon className="text-rose-400 shrink-0" size={18} />,
-      titleColor: 'text-rose-300',
+      container: 'bg-rose-50/90 border-rose-200 text-rose-950 shadow-sm backdrop-blur-md',
+      icon: <AlertTriangleIcon className="text-rose-700 shrink-0" size={18} />,
+      titleColor: 'text-rose-950 font-bold',
     },
     success: {
-      container: 'bg-emerald-950/40 border-emerald-800/60 text-emerald-200',
-      icon: <ShieldIcon className="text-emerald-400 shrink-0" size={18} />,
-      titleColor: 'text-emerald-300',
+      container: 'bg-emerald-50/90 border-emerald-200 text-emerald-950 shadow-sm backdrop-blur-md',
+      icon: <ShieldIcon className="text-emerald-700 shrink-0" size={18} />,
+      titleColor: 'text-emerald-950 font-bold',
     },
   };
 

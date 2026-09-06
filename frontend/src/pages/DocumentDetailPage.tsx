@@ -17,7 +17,6 @@ import {
   AlertTriangleIcon,
   RotateCwIcon,
 } from '../components/icons';
-import { Card } from '../components/common/Card';
 import { Button } from '../components/common/Button';
 import { Modal } from '../components/common/Modal';
 import { Alert } from '../components/common/Alert';
@@ -128,12 +127,12 @@ export const DocumentDetailPage: React.FC = () => {
   const isFailed = document.status === 'FAILED';
 
   return (
-    <div className="space-y-6 max-w-7xl mx-auto text-zinc-100">
+    <div className="space-y-6 max-w-7xl mx-auto text-zinc-900">
       {/* Top Back Navigation */}
       <div className="flex items-center justify-between">
         <button
           onClick={() => navigate('/documents')}
-          className="inline-flex items-center space-x-2 text-xs font-mono text-zinc-400 hover:text-white transition-colors"
+          className="inline-flex items-center space-x-2 text-xs font-mono text-zinc-600 hover:text-zinc-950 transition-colors font-medium"
         >
           <ArrowLeftIcon size={14} />
           <span>← Back to Documents</span>
@@ -142,7 +141,7 @@ export const DocumentDetailPage: React.FC = () => {
         <nav className="flex items-center space-x-2 text-xs text-zinc-500 font-mono">
           <span>Documents</span>
           <ChevronRightIcon size={12} />
-          <span className="text-zinc-300 truncate max-w-xs">{document.filename}</span>
+          <span className="text-zinc-900 font-semibold truncate max-w-xs">{document.filename}</span>
         </nav>
       </div>
 
@@ -153,43 +152,43 @@ export const DocumentDetailPage: React.FC = () => {
       )}
 
       {/* DOCUMENT OVERVIEW CARD */}
-      <div className="bg-[#121215] border border-zinc-800/80 rounded-lg overflow-hidden shadow-sm">
+      <div className="kavach-glass-panel border border-white/85 rounded-2xl overflow-hidden shadow-xl">
         {/* Document Header */}
-        <div className="p-6 border-b border-zinc-800/80 space-y-3">
+        <div className="p-6 border-b border-zinc-200/80 space-y-3 bg-white/40">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
             <div>
-              <h1 className="text-xl font-semibold text-white tracking-tight font-mono">
+              <h1 className="text-2xl font-black text-zinc-950 tracking-tight font-mono">
                 {document.filename}
               </h1>
-              <p className="text-xs text-zinc-400 mt-1 font-mono flex items-center gap-2">
-                <span>PDF</span>
-                <span className="text-zinc-600">•</span>
+              <p className="text-xs text-zinc-600 mt-1 font-mono flex items-center gap-2">
+                <span className="font-bold">PDF</span>
+                <span className="text-zinc-300">•</span>
                 <span>Secure Local Repository</span>
                 {document.classification && (
                   <>
-                    <span className="text-zinc-600">•</span>
-                    <span className="text-blue-400">{document.classification.replace('_', ' ')}</span>
+                    <span className="text-zinc-300">•</span>
+                    <span className="text-zinc-900 font-semibold">{document.classification.replace('_', ' ')}</span>
                   </>
                 )}
               </p>
             </div>
 
             <div className="flex items-center gap-2">
-              <span className="text-xs font-mono text-zinc-400">STATUS:</span>
+              <span className="text-xs font-mono text-zinc-500 font-bold">STATUS:</span>
               {isReady && (
-                <span className="inline-flex items-center gap-1.5 text-xs px-2.5 py-1 rounded bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 font-mono font-semibold">
+                <span className="status-pill-online">
                   <CheckIcon size={12} className="stroke-[2.5]" />
                   READY
                 </span>
               )}
               {isProcessingStatus && (
-                <span className="inline-flex items-center gap-1.5 text-xs px-2.5 py-1 rounded bg-blue-500/10 text-blue-400 border border-blue-500/20 font-mono font-semibold">
+                <span className="status-pill-warning">
                   <RotateCwIcon size={12} className="animate-spin" />
                   PROCESSING
                 </span>
               )}
               {isFailed && (
-                <span className="inline-flex items-center gap-1.5 text-xs px-2.5 py-1 rounded bg-rose-500/10 text-rose-400 border border-rose-500/20 font-mono font-semibold">
+                <span className="inline-flex items-center gap-1.5 text-xs px-2.5 py-1 rounded-full bg-rose-50 text-rose-700 border border-rose-200 font-mono font-bold">
                   <AlertTriangleIcon size={12} />
                   FAILED
                 </span>
@@ -200,70 +199,70 @@ export const DocumentDetailPage: React.FC = () => {
           {/* Status Details Strip */}
           <div className="pt-2 text-xs font-mono">
             {isReady && (
-              <div className="text-emerald-400 font-medium flex items-center gap-1.5">
+              <div className="text-emerald-700 font-semibold flex items-center gap-1.5">
                 <CheckIcon size={13} className="stroke-[2.5]" />
                 <span>✓ Ready for Query</span>
               </div>
             )}
             {isProcessingStatus && (
-              <div className="text-blue-400 flex items-center gap-2">
-                <span className="font-medium">Processing document</span>
-                <span className="text-zinc-600">·</span>
-                <span className="text-zinc-400">Local indexing in progress</span>
+              <div className="text-zinc-800 flex items-center gap-2">
+                <span className="font-bold">Processing document</span>
+                <span className="text-zinc-400">·</span>
+                <span className="text-zinc-600">Local indexing in progress</span>
               </div>
             )}
             {isFailed && (
-              <div className="p-3 bg-rose-950/25 border border-rose-800/40 rounded text-rose-300 space-y-1">
-                <div className="font-semibold tracking-wider">INGESTION FAILED</div>
-                <p className="text-rose-400 text-[11px]">Unable to process this document.</p>
+              <div className="p-3 bg-rose-50 border border-rose-200 rounded-xl text-rose-900 space-y-1">
+                <div className="font-bold tracking-wider">INGESTION FAILED</div>
+                <p className="text-rose-700 text-[11px]">Unable to process this document.</p>
               </div>
             )}
           </div>
         </div>
 
         {/* 2-Column Split: DOCUMENT INFORMATION | PROCESSING */}
-        <div className="grid grid-cols-1 md:grid-cols-2 divide-y md:divide-y-0 md:divide-x divide-zinc-800/80 text-xs font-mono">
+        <div className="grid grid-cols-1 md:grid-cols-2 divide-y md:divide-y-0 md:divide-x divide-zinc-200/80 text-xs font-mono">
           {/* Column 1: DOCUMENT INFORMATION */}
           <div className="p-6 space-y-3">
-            <h3 className="text-[10px] uppercase tracking-wider text-zinc-400 font-semibold border-b border-zinc-800/60 pb-2">
+            <h3 className="text-[10px] uppercase tracking-wider text-zinc-900 font-bold border-b border-zinc-200/80 pb-2">
               DOCUMENT INFORMATION
             </h3>
 
             <div className="space-y-2.5">
-              <div className="flex justify-between py-1 border-b border-zinc-800/40">
+              <div className="flex justify-between py-1 border-b border-zinc-200/50">
                 <span className="text-zinc-500">Document name</span>
-                <span className="text-zinc-200 font-medium truncate max-w-[240px] text-right font-sans" title={document.title}>
+                <span className="text-zinc-950 font-bold truncate max-w-[240px] text-right font-sans" title={document.title}>
                   {document.title}
                 </span>
               </div>
 
-              <div className="flex justify-between py-1 border-b border-zinc-800/40">
+              <div className="flex justify-between py-1 border-b border-zinc-200/50">
                 <span className="text-zinc-500">File type</span>
-                <span className="text-zinc-200 uppercase">{document.mime_type?.replace('application/', '') || 'PDF'}</span>
+                <span className="text-zinc-900 font-bold uppercase">{document.mime_type?.replace('application/', '') || 'PDF'}</span>
               </div>
 
-              <div className="flex justify-between py-1 border-b border-zinc-800/40">
+              <div className="flex justify-between py-1 border-b border-zinc-200/50">
                 <span className="text-zinc-500">File size</span>
-                <span className="text-zinc-200">
+                <span className="text-zinc-900 font-semibold">
                   {document.file_size && document.file_size > 0
                     ? `${(document.file_size / 1024 / 1024).toFixed(2)} MB`
                     : '1.00 MB'}
                 </span>
               </div>
 
-              <div className="flex justify-between py-1 border-b border-zinc-800/40">
+              <div className="flex justify-between py-1 border-b border-zinc-200/50">
                 <span className="text-zinc-500">Pages</span>
-                <span className="text-zinc-200">{document.page_count ? `${document.page_count}` : '1'}</span>
+                <span className="text-zinc-900 font-semibold">{document.page_count ? `${document.page_count}` : '1'}</span>
               </div>
 
-              <div className="flex justify-between py-1 border-b border-zinc-800/40">
+              <div className="flex justify-between py-1 border-b border-zinc-200/50">
                 <span className="text-zinc-500">Chunks</span>
-                <span className="text-blue-400">{document.chunk_count}</span>
+                <span className="text-zinc-950 font-bold">{document.chunk_count}</span>
               </div>
 
-              <div className="flex justify-between py-1 border-b border-zinc-800/40">
+              <div className="flex justify-between py-1 border-b border-zinc-200/50">
                 <span className="text-zinc-500">Upload date</span>
-                <span className="text-zinc-200">
+                <span className="text-zinc-900 font-medium">
                   {(() => {
                     try {
                       const d = new Date(document.uploaded_at);
@@ -275,9 +274,9 @@ export const DocumentDetailPage: React.FC = () => {
                 </span>
               </div>
 
-              <div className="flex justify-between py-1 border-b border-zinc-800/40">
+              <div className="flex justify-between py-1 border-b border-zinc-200/50">
                 <span className="text-zinc-500">Last processed</span>
-                <span className="text-zinc-200">
+                <span className="text-zinc-900 font-medium">
                   {isReady
                     ? (() => {
                         try {
@@ -295,18 +294,18 @@ export const DocumentDetailPage: React.FC = () => {
 
               <div className="flex justify-between py-1">
                 <span className="text-zinc-500">Indexing state</span>
-                <span className={isReady ? 'text-emerald-400' : 'text-zinc-400'}>
+                <span className={isReady ? 'text-emerald-700 font-bold' : 'text-zinc-600'}>
                   {isReady ? 'pgvector (384-d dense embeddings)' : isProcessingStatus ? 'Local vector indexing' : 'Not indexed'}
                 </span>
               </div>
             </div>
 
             {document.checksum_sha256 && (
-              <div className="pt-2 text-[11px] text-zinc-500 flex items-center justify-between bg-zinc-900/60 p-2.5 rounded border border-zinc-800/60">
+              <div className="pt-2 text-[11px] text-zinc-600 flex items-center justify-between bg-white/70 p-2.5 rounded-lg border border-zinc-200/80">
                 <span className="truncate max-w-[200px]">SHA-256: {document.checksum_sha256.slice(0, 16)}...</span>
                 <button
                   onClick={handleCopyHash}
-                  className="text-blue-400 hover:text-blue-300 text-[10px] ml-2 shrink-0 font-medium"
+                  className="text-zinc-900 hover:text-black font-bold text-[10px] ml-2 shrink-0 font-mono"
                 >
                   {copiedHash ? 'COPIED' : 'COPY'}
                 </button>
@@ -317,33 +316,33 @@ export const DocumentDetailPage: React.FC = () => {
           {/* Column 2: PROCESSING */}
           <div className="p-6 space-y-4 flex flex-col justify-between">
             <div className="space-y-3">
-              <h3 className="text-[10px] uppercase tracking-wider text-zinc-400 font-semibold border-b border-zinc-800/60 pb-2">
+              <h3 className="text-[10px] uppercase tracking-wider text-zinc-900 font-bold border-b border-zinc-200/80 pb-2">
                 PROCESSING
               </h3>
 
               <div className="space-y-3.5 pt-1">
                 {/* Uploaded */}
                 <div className="flex items-center space-x-3">
-                  <span className="w-5 h-5 rounded-full bg-emerald-500/15 text-emerald-400 flex items-center justify-center text-xs">
+                  <span className="w-5 h-5 rounded-full bg-emerald-100 text-emerald-800 flex items-center justify-center text-xs font-bold">
                     ✓
                   </span>
                   <div>
-                    <span className="font-medium text-zinc-200">Uploaded</span>
+                    <span className="font-bold text-zinc-900">Uploaded</span>
                     <p className="text-[10px] text-zinc-500 font-sans">Document stored in secure enclave</p>
                   </div>
                 </div>
 
                 {/* Extracted */}
                 <div className="flex items-center space-x-3">
-                  <span className={`w-5 h-5 rounded-full flex items-center justify-center text-xs ${
-                    isReady ? 'bg-emerald-500/15 text-emerald-400'
-                    : isFailed ? 'bg-rose-500/15 text-rose-400'
-                    : 'bg-blue-500/15 text-blue-400'
+                  <span className={`w-5 h-5 rounded-full flex items-center justify-center text-xs font-bold ${
+                    isReady ? 'bg-emerald-100 text-emerald-800'
+                    : isFailed ? 'bg-rose-100 text-rose-800'
+                    : 'bg-zinc-100 text-zinc-800'
                   }`}>
                     {isReady ? '✓' : isFailed ? '✕' : '⟳'}
                   </span>
                   <div>
-                    <span className="font-medium text-zinc-200">Extracted</span>
+                    <span className="font-bold text-zinc-900">Extracted</span>
                     <p className="text-[10px] text-zinc-500 font-sans">
                       {isReady ? `${document.page_count || 1} pages parsed` : isFailed ? 'Text extraction failed' : 'Local PDF parsing'}
                     </p>
@@ -352,15 +351,15 @@ export const DocumentDetailPage: React.FC = () => {
 
                 {/* Indexed */}
                 <div className="flex items-center space-x-3">
-                  <span className={`w-5 h-5 rounded-full flex items-center justify-center text-xs ${
-                    isReady ? 'bg-emerald-500/15 text-emerald-400'
-                    : isFailed ? 'bg-zinc-800 text-zinc-600'
-                    : 'bg-blue-500/15 text-blue-400'
+                  <span className={`w-5 h-5 rounded-full flex items-center justify-center text-xs font-bold ${
+                    isReady ? 'bg-emerald-100 text-emerald-800'
+                    : isFailed ? 'bg-zinc-100 text-zinc-400'
+                    : 'bg-zinc-200 text-zinc-900'
                   }`}>
                     {isReady ? '✓' : isFailed ? '○' : '⟳'}
                   </span>
                   <div>
-                    <span className="font-medium text-zinc-200">Indexed</span>
+                    <span className="font-bold text-zinc-900">Indexed</span>
                     <p className="text-[10px] text-zinc-500 font-sans">
                       {isReady ? `${document.chunk_count} chunks embedded in pgvector` : isFailed ? 'Indexing pending' : 'Generating dense embeddings'}
                     </p>
@@ -369,13 +368,13 @@ export const DocumentDetailPage: React.FC = () => {
 
                 {/* Ready */}
                 <div className="flex items-center space-x-3">
-                  <span className={`w-5 h-5 rounded-full flex items-center justify-center text-xs ${
-                    isReady ? 'bg-emerald-500/15 text-emerald-400' : 'bg-zinc-800 text-zinc-600'
+                  <span className={`w-5 h-5 rounded-full flex items-center justify-center text-xs font-bold ${
+                    isReady ? 'bg-emerald-100 text-emerald-800' : 'bg-zinc-100 text-zinc-400'
                   }`}>
                     {isReady ? '✓' : '○'}
                   </span>
                   <div>
-                    <span className="font-medium text-zinc-200">Ready</span>
+                    <span className="font-bold text-zinc-900">Ready</span>
                     <p className="text-[10px] text-zinc-500 font-sans">
                       {isReady ? 'Available for RAG query' : 'Awaiting processing pipeline'}
                     </p>
@@ -402,7 +401,7 @@ export const DocumentDetailPage: React.FC = () => {
         </div>
 
         {/* Action Buttons Strip */}
-        <div className="p-4 bg-[#18181b] border-t border-zinc-800/80 flex flex-wrap items-center justify-between gap-3">
+        <div className="p-4 bg-white/60 border-t border-zinc-200/80 flex flex-wrap items-center justify-between gap-3 backdrop-blur-md">
           <div className="flex items-center gap-2.5">
             <Button
               variant={isReady ? 'primary' : 'secondary'}
@@ -452,7 +451,7 @@ export const DocumentDetailPage: React.FC = () => {
               size="sm"
               leftIcon={<TrashIcon size={13} />}
               onClick={() => setIsPurgeModalOpen(true)}
-              className="text-zinc-500 hover:text-rose-400"
+              className="text-zinc-500 hover:text-rose-600"
             >
               Delete
             </Button>
@@ -461,13 +460,13 @@ export const DocumentDetailPage: React.FC = () => {
       </div>
 
       {/* Tabs Navigation */}
-      <div className="border-b border-zinc-800 flex space-x-6 text-xs font-medium">
+      <div className="border-b border-zinc-300/80 flex space-x-6 text-xs font-medium">
         <button
           onClick={() => setActiveTab('pipeline')}
           className={`pb-3 border-b-2 transition-colors flex items-center space-x-2 ${
             activeTab === 'pipeline'
-              ? 'border-blue-500 text-blue-400 font-semibold'
-              : 'border-transparent text-zinc-400 hover:text-zinc-200'
+              ? 'border-zinc-950 text-zinc-950 font-bold'
+              : 'border-transparent text-zinc-500 hover:text-zinc-900'
           }`}
         >
           <RefreshIcon size={14} />
@@ -478,8 +477,8 @@ export const DocumentDetailPage: React.FC = () => {
           onClick={() => setActiveTab('preview')}
           className={`pb-3 border-b-2 transition-colors flex items-center space-x-2 ${
             activeTab === 'preview'
-              ? 'border-blue-500 text-blue-400 font-semibold'
-              : 'border-transparent text-zinc-400 hover:text-zinc-200'
+              ? 'border-zinc-950 text-zinc-950 font-bold'
+              : 'border-transparent text-zinc-500 hover:text-zinc-900'
           }`}
         >
           <FileTextIcon size={14} />
@@ -490,8 +489,8 @@ export const DocumentDetailPage: React.FC = () => {
           onClick={() => setActiveTab('chunks')}
           className={`pb-3 border-b-2 transition-colors flex items-center space-x-2 ${
             activeTab === 'chunks'
-              ? 'border-blue-500 text-blue-400 font-semibold'
-              : 'border-transparent text-zinc-400 hover:text-zinc-200'
+              ? 'border-zinc-950 text-zinc-950 font-bold'
+              : 'border-transparent text-zinc-500 hover:text-zinc-900'
           }`}
         >
           <DatabaseIcon size={14} />
@@ -502,8 +501,8 @@ export const DocumentDetailPage: React.FC = () => {
           onClick={() => setActiveTab('rag')}
           className={`pb-3 border-b-2 transition-colors flex items-center space-x-2 ${
             activeTab === 'rag'
-              ? 'border-blue-500 text-blue-400 font-semibold'
-              : 'border-transparent text-zinc-400 hover:text-zinc-200'
+              ? 'border-zinc-950 text-zinc-950 font-bold'
+              : 'border-transparent text-zinc-500 hover:text-zinc-900'
           }`}
         >
           <HardDriveIcon size={14} />
@@ -513,7 +512,7 @@ export const DocumentDetailPage: React.FC = () => {
 
       {/* Tab 1: Processing Pipeline */}
       {activeTab === 'pipeline' && (
-        <Card className="p-6 bg-[#121215] border border-zinc-800/80">
+        <div className="p-6 kavach-glass-panel border border-white/90 rounded-2xl shadow-lg">
           <ProcessingStatus
             status={document.status}
             currentStage={document.current_stage}
@@ -521,11 +520,11 @@ export const DocumentDetailPage: React.FC = () => {
             variant="detailed"
           />
 
-          <div className="mt-6 pt-5 border-t border-zinc-800 flex items-center justify-between flex-wrap gap-3">
-            <div className="text-xs text-zinc-400 font-mono">
-              Vector Storage: <strong className="text-zinc-200">PostgreSQL / pgvector (384-d)</strong>
-              <span className="text-zinc-600 mx-2">·</span>
-              <span>Status: <strong className={isReady ? 'text-emerald-400' : isFailed ? 'text-rose-400' : 'text-blue-400'}>{document.status}</strong></span>
+          <div className="mt-6 pt-5 border-t border-zinc-200/80 flex items-center justify-between flex-wrap gap-3">
+            <div className="text-xs text-zinc-600 font-mono">
+              Vector Storage: <strong className="text-zinc-950">PostgreSQL / pgvector (384-d)</strong>
+              <span className="text-zinc-300 mx-2">·</span>
+              <span>Status: <strong className={isReady ? 'text-emerald-700' : isFailed ? 'text-rose-700' : 'text-zinc-900'}>{document.status}</strong></span>
             </div>
 
             <Button
@@ -538,7 +537,7 @@ export const DocumentDetailPage: React.FC = () => {
               {isFailed ? 'Retry Ingestion' : 'Re-index Chunks'}
             </Button>
           </div>
-        </Card>
+        </div>
       )}
 
       {/* Tab 2: Document Preview */}
@@ -550,27 +549,27 @@ export const DocumentDetailPage: React.FC = () => {
       {activeTab === 'chunks' && (
         <div className="space-y-3">
           {chunks.length === 0 ? (
-            <Card className="p-10 text-center text-xs text-zinc-400 bg-[#121215]">
-              <DatabaseIcon size={24} className="mx-auto text-zinc-600 mb-2" />
-              <div className="font-semibold text-zinc-300">No Vector Chunks Available</div>
+            <div className="p-10 text-center text-xs text-zinc-500 kavach-glass-panel rounded-2xl">
+              <DatabaseIcon size={24} className="mx-auto text-zinc-400 mb-2" />
+              <div className="font-bold text-zinc-900">No Vector Chunks Available</div>
               <p className="mt-1 text-zinc-500 max-w-sm mx-auto">
                 {isFailed
                   ? 'Text extraction failed. Chunks could not be parsed.'
                   : 'Document is not yet chunked. Trigger re-index to extract chunks.'}
               </p>
-            </Card>
+            </div>
           ) : (
             chunks.map((chunk, idx) => (
-              <Card key={chunk.id} className="p-4 border-zinc-800 bg-[#121215]">
-                <div className="flex items-center justify-between border-b border-zinc-800/80 pb-2 mb-3 text-xs font-mono">
+              <div key={chunk.id} className="p-5 kavach-glass-panel border border-white/90 rounded-2xl shadow-sm space-y-3">
+                <div className="flex items-center justify-between border-b border-zinc-200/70 pb-2 text-xs font-mono">
                   <div className="flex items-center space-x-2">
-                    <span className="text-blue-400 font-medium">Chunk #{idx + 1}</span>
-                    <span className="text-zinc-600">|</span>
-                    <span className="text-zinc-400">ID: {chunk.id}</span>
+                    <span className="text-zinc-950 font-bold">Chunk #{idx + 1}</span>
+                    <span className="text-zinc-300">|</span>
+                    <span className="text-zinc-500">ID: {chunk.id}</span>
                     {chunk.page_number && (
                       <>
-                        <span className="text-zinc-600">|</span>
-                        <span className="text-zinc-400">Page {chunk.page_number}</span>
+                        <span className="text-zinc-300">|</span>
+                        <span className="text-zinc-700 font-medium">Page {chunk.page_number}</span>
                       </>
                     )}
                   </div>
@@ -578,13 +577,13 @@ export const DocumentDetailPage: React.FC = () => {
                   <div className="flex items-center space-x-3 text-[11px]">
                     <span className="text-zinc-500">{chunk.token_count} Tokens</span>
                     {chunk.relevance_score && (
-                      <span className="text-emerald-400 bg-emerald-500/10 border border-emerald-500/20 px-1.5 py-0.5 rounded">
+                      <span className="status-pill-online text-[10px]">
                         Score: {chunk.relevance_score}
                       </span>
                     )}
                     <button
                       onClick={() => handleOpenEvidenceViewer(chunk.page_number || 1, chunk.id)}
-                      className="text-blue-400 hover:text-blue-300 hover:underline flex items-center gap-1 text-[11px]"
+                      className="text-zinc-950 font-bold hover:underline flex items-center gap-1 text-[11px]"
                     >
                       <ExternalLinkIcon size={12} />
                       Inspect
@@ -592,10 +591,10 @@ export const DocumentDetailPage: React.FC = () => {
                   </div>
                 </div>
 
-                <div className="bg-zinc-900/60 p-3.5 rounded border border-zinc-800 text-xs text-zinc-200 leading-relaxed whitespace-pre-wrap select-text font-serif">
+                <div className="bg-white/90 p-4 rounded-xl border border-zinc-200/80 text-xs text-zinc-900 leading-relaxed whitespace-pre-wrap select-text font-serif shadow-inner">
                   {chunk.content}
                 </div>
-              </Card>
+              </div>
             ))
           )}
         </div>
@@ -603,43 +602,43 @@ export const DocumentDetailPage: React.FC = () => {
 
       {/* Tab 4: RAG Configuration */}
       {activeTab === 'rag' && (
-        <Card className="p-6 space-y-6 text-xs bg-[#121215] border border-zinc-800/80">
+        <div className="p-6 space-y-6 text-xs kavach-glass-panel border border-white/90 rounded-2xl shadow-lg">
           <div>
-            <h3 className="text-sm font-semibold text-white">Local RAG Configuration</h3>
-            <p className="text-zinc-400 text-xs mt-0.5">Parameters applied during document ingestion and vector retrieval</p>
+            <h3 className="text-sm font-bold text-zinc-950">Local RAG Configuration</h3>
+            <p className="text-zinc-500 text-xs mt-0.5">Parameters applied during document ingestion and vector retrieval</p>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div className="p-3.5 bg-[#18181b] rounded-lg border border-zinc-800 space-y-1">
-              <div className="text-zinc-500 font-mono text-[11px] uppercase">Embedding Model</div>
-              <div className="text-blue-400 font-medium font-mono">sentence-transformers / all-MiniLM-L6-v2</div>
-              <div className="text-[11px] text-zinc-400">384-dimensional dense vectors generated locally</div>
+            <div className="p-4 bg-white/80 rounded-xl border border-white/90 shadow-sm space-y-1">
+              <div className="text-zinc-500 font-mono text-[11px] uppercase font-semibold">Embedding Model</div>
+              <div className="text-zinc-950 font-bold font-mono">sentence-transformers / all-MiniLM-L6-v2</div>
+              <div className="text-[11px] text-zinc-500">384-dimensional dense vectors generated locally</div>
             </div>
 
-            <div className="p-3.5 bg-[#18181b] rounded-lg border border-zinc-800 space-y-1">
-              <div className="text-zinc-500 font-mono text-[11px] uppercase">Vector Index</div>
-              <div className="text-emerald-400 font-medium font-mono">PostgreSQL pgvector (HNSW Index)</div>
-              <div className="text-[11px] text-zinc-400">Cosine distance metric with persistent storage</div>
+            <div className="p-4 bg-white/80 rounded-xl border border-white/90 shadow-sm space-y-1">
+              <div className="text-zinc-500 font-mono text-[11px] uppercase font-semibold">Vector Index</div>
+              <div className="text-zinc-950 font-bold font-mono">PostgreSQL pgvector (HNSW Index)</div>
+              <div className="text-[11px] text-zinc-500">Cosine distance metric with persistent storage</div>
             </div>
 
-            <div className="p-3.5 bg-[#18181b] rounded-lg border border-zinc-800 space-y-1">
-              <div className="text-zinc-500 font-mono text-[11px] uppercase">Chunk Size & Overlap</div>
-              <div className="text-zinc-200 font-medium font-mono">512 tokens / 64 token overlap (12.5%)</div>
-              <div className="text-[11px] text-zinc-400">Recursive character splitting preserving sentence boundaries</div>
+            <div className="p-4 bg-white/80 rounded-xl border border-white/90 shadow-sm space-y-1">
+              <div className="text-zinc-500 font-mono text-[11px] uppercase font-semibold">Chunk Size & Overlap</div>
+              <div className="text-zinc-950 font-bold font-mono">512 tokens / 64 token overlap (12.5%)</div>
+              <div className="text-[11px] text-zinc-500">Recursive character splitting preserving sentence boundaries</div>
             </div>
 
-            <div className="p-3.5 bg-[#18181b] rounded-lg border border-zinc-800 space-y-1">
-              <div className="text-zinc-500 font-mono text-[11px] uppercase">Classification Policy</div>
-              <div className="text-amber-400 font-medium font-mono">
+            <div className="p-4 bg-white/80 rounded-xl border border-white/90 shadow-sm space-y-1">
+              <div className="text-zinc-500 font-mono text-[11px] uppercase font-semibold">Classification Policy</div>
+              <div className="text-zinc-950 font-bold font-mono">
                 Level: {document.classification}
               </div>
-              <div className="text-[11px] text-zinc-400">Role-based access check applied before query expansion</div>
+              <div className="text-[11px] text-zinc-500">Role-based access check applied before query expansion</div>
             </div>
           </div>
 
-          <div className="pt-4 border-t border-zinc-800 flex items-center justify-between">
-            <span className="text-[11px] font-mono text-zinc-500 flex items-center gap-1">
-              <ShieldIcon size={14} className="text-emerald-400" />
+          <div className="pt-4 border-t border-zinc-200/80 flex items-center justify-between">
+            <span className="text-[11px] font-mono text-zinc-600 flex items-center gap-1 font-semibold">
+              <ShieldIcon size={14} className="text-emerald-700" />
               Local Private Inference Verified
             </span>
 
@@ -653,7 +652,7 @@ export const DocumentDetailPage: React.FC = () => {
               Query This Document
             </Button>
           </div>
-        </Card>
+        </div>
       )}
 
       {/* Delete Modal */}

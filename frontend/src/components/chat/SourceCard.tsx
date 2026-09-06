@@ -18,38 +18,38 @@ export const SourceCard: React.FC<SourceCardProps> = ({ source, index, onViewEvi
   const evidenceNumber = index !== undefined ? String(index + 1).padStart(2, '0') : '01';
 
   return (
-    <div className="bg-[#18181b] border border-zinc-800/80 hover:border-zinc-700/80 rounded-md p-3 space-y-2 transition-colors shadow-sm">
+    <div className="bg-white/85 border border-white/90 hover:border-zinc-300 rounded-xl p-3.5 space-y-2.5 transition-all shadow-sm">
       {/* Evidence Tag Header */}
-      <div className="flex items-start justify-between gap-2 border-b border-zinc-800/60 pb-2">
+      <div className="flex items-start justify-between gap-2 border-b border-zinc-200/70 pb-2">
         <div className="flex items-center space-x-2 min-w-0">
-          <span className="text-[10px] font-mono text-blue-400 font-medium bg-blue-500/10 px-1.5 py-0.5 rounded border border-blue-500/20 shrink-0">
+          <span className="text-[10px] font-mono text-zinc-900 font-bold bg-zinc-100 px-2 py-0.5 rounded-full border border-zinc-200 shrink-0">
             Source {evidenceNumber}
           </span>
-          <span className="text-zinc-600">·</span>
-          <span className="text-xs font-medium text-zinc-200 truncate" title={documentName}>
+          <span className="text-zinc-400">·</span>
+          <span className="text-xs font-bold text-zinc-950 truncate" title={documentName}>
             {documentName}
           </span>
         </div>
 
         {hasRelevance && (
-          <span className="shrink-0 text-[10px] font-mono px-2 py-0.5 rounded bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 flex items-center gap-1">
-            <SparklesIcon size={10} className="text-emerald-400" />
+          <span className="status-pill-online text-[10px] shrink-0">
+            <SparklesIcon size={10} />
             {relevancePct}% Match
           </span>
         )}
       </div>
 
       {/* Page & Document Reference */}
-      <div className="flex items-center space-x-2 text-[10px] font-mono text-zinc-400">
-        <DocumentIcon size={12} className="text-blue-400 shrink-0" />
+      <div className="flex items-center space-x-2 text-[10px] font-mono text-zinc-500">
+        <DocumentIcon size={12} className="text-zinc-700 shrink-0" />
         {hasPage && (
-          <span className="text-zinc-300 font-medium">
+          <span className="text-zinc-800 font-semibold">
             Page {source.page_number}
           </span>
         )}
         {source.chunk_id && (
           <>
-            <span className="text-zinc-600">·</span>
+            <span className="text-zinc-300">·</span>
             <span className="text-zinc-500 truncate max-w-[140px]">{source.chunk_id}</span>
           </>
         )}
@@ -57,14 +57,14 @@ export const SourceCard: React.FC<SourceCardProps> = ({ source, index, onViewEvi
 
       {/* Snippet Quotation Block */}
       {hasSnippet && (
-        <div className="bg-[#121215] rounded border border-zinc-800/80 p-2.5 text-xs text-zinc-300 leading-relaxed whitespace-pre-wrap select-text font-serif italic">
+        <div className="bg-white/90 rounded-lg border border-zinc-200/80 p-3 text-xs text-zinc-800 leading-relaxed whitespace-pre-wrap select-text font-serif italic shadow-inner">
           "{source.snippet}"
         </div>
       )}
 
       {/* Action Footer */}
       <div className="flex items-center justify-between pt-1 text-[10px] font-mono text-zinc-500">
-        <span className="text-zinc-500">
+        <span>
           Grounded text segment
         </span>
         
@@ -73,7 +73,7 @@ export const SourceCard: React.FC<SourceCardProps> = ({ source, index, onViewEvi
           size="sm"
           onClick={() => onViewEvidence?.(source)}
           leftIcon={<ExternalLinkIcon size={11} />}
-          className="text-[11px] py-0.5 px-2 h-6"
+          className="text-[11px] py-0.5 px-2.5 h-6 bg-white hover:bg-zinc-50 border-zinc-300 text-zinc-900 font-medium"
         >
           View Passage
         </Button>

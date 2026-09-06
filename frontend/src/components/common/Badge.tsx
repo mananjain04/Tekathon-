@@ -19,18 +19,18 @@ export const Badge: React.FC<BadgeProps> = ({
   };
 
   const variantStyles = {
-    default: 'bg-zinc-800/80 text-zinc-300 border border-zinc-700/80',
-    success: 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20',
-    warning: 'bg-amber-500/10 text-amber-400 border border-amber-500/20',
-    danger: 'bg-rose-500/10 text-rose-400 border border-rose-500/20',
-    info: 'bg-blue-500/10 text-blue-400 border border-blue-500/20',
-    outline: 'bg-transparent text-zinc-400 border border-zinc-700/80',
-    classified: 'bg-indigo-500/10 text-indigo-400 border border-indigo-500/20',
+    default: 'bg-zinc-100 text-zinc-800 border border-zinc-300/80',
+    success: 'bg-emerald-50 text-emerald-800 border border-emerald-200',
+    warning: 'bg-amber-50 text-amber-800 border border-amber-200',
+    danger: 'bg-rose-50 text-rose-800 border border-rose-200',
+    info: 'bg-blue-50 text-blue-800 border border-blue-200',
+    outline: 'bg-transparent text-zinc-700 border border-zinc-300',
+    classified: 'bg-purple-50 text-purple-800 border border-purple-200',
   };
 
   return (
     <span
-      className={`inline-flex items-center justify-center font-medium rounded ${sizeStyles[size]} ${variantStyles[variant]} ${className}`}
+      className={`inline-flex items-center justify-center font-semibold rounded-full ${sizeStyles[size]} ${variantStyles[variant]} ${className}`}
     >
       {children}
     </span>

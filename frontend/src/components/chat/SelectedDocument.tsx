@@ -30,34 +30,34 @@ export const SelectedDocument: React.FC<SelectedDocumentProps> = ({
   };
 
   return (
-    <div className="bg-[#121215] border border-zinc-800/80 rounded-lg p-3 space-y-2.5">
+    <div className="kavach-glass-card rounded-xl p-3.5 space-y-3 border-white/80 shadow-sm">
       <div className="flex items-center justify-between">
-        <span className="text-[10px] font-mono uppercase tracking-wider text-zinc-400 flex items-center gap-1.5 font-medium">
-          <DocumentIcon size={13} className="text-blue-500" />
-          Active Context
+        <span className="text-[10px] font-mono uppercase tracking-wider text-zinc-700 flex items-center gap-1.5 font-bold">
+          <DocumentIcon size={13} className="text-zinc-900" />
+          ACTIVE CONTEXT
         </span>
         <Button
           variant="ghost"
           size="sm"
           onClick={() => setIsPickerOpen(true)}
-          className="text-xs text-blue-400 hover:text-blue-300 py-0.5 px-1.5 h-6"
+          className="text-xs text-zinc-900 font-semibold hover:bg-white/80 py-0.5 px-2 h-6"
         >
           {selectedDocument ? 'Change' : 'Select'}
         </Button>
       </div>
 
       {selectedDocument ? (
-        <div className="p-2.5 rounded-md bg-[#18181b] border border-zinc-800/80 space-y-2">
+        <div className="p-3 rounded-lg bg-white/85 border border-white/95 space-y-2 shadow-sm">
           <div className="flex items-start justify-between gap-2">
             <div className="flex items-start space-x-2 min-w-0">
-              <div className="p-1 rounded bg-blue-500/10 text-blue-400 border border-blue-500/20 shrink-0 mt-0.5">
+              <div className="p-1 rounded bg-zinc-100 text-zinc-900 border border-zinc-200 shrink-0 mt-0.5">
                 <DocumentIcon size={14} />
               </div>
               <div className="min-w-0">
-                <p className="text-xs font-medium text-zinc-100 truncate font-mono" title={selectedDocument.title}>
+                <p className="text-xs font-bold text-zinc-950 truncate font-mono" title={selectedDocument.title}>
                   {selectedDocument.filename || selectedDocument.title}
                 </p>
-                <p className="text-[10px] text-zinc-400 truncate">
+                <p className="text-[10px] text-zinc-500 truncate">
                   {selectedDocument.title}
                 </p>
               </div>
@@ -65,23 +65,23 @@ export const SelectedDocument: React.FC<SelectedDocumentProps> = ({
             <button
               onClick={() => onSelectDocument(null)}
               title="Clear specific document filter"
-              className="text-zinc-500 hover:text-zinc-300 p-0.5 rounded transition-colors"
+              className="text-zinc-400 hover:text-zinc-700 p-0.5 rounded transition-colors"
             >
               <XIcon size={13} />
             </button>
           </div>
 
-          <div className="flex items-center justify-between pt-1 border-t border-zinc-800/60 text-[11px] font-mono">
+          <div className="flex items-center justify-between pt-1 border-t border-zinc-200/70 text-[11px] font-mono">
             <div className="flex items-center space-x-1.5">
               <span className="text-zinc-500">Status:</span>
-              <span className="text-emerald-400 flex items-center gap-1 font-medium">
-                <CheckCircleIcon size={12} />
-                Indexed
+              <span className="status-pill-online text-[9px] py-0 px-1.5 font-semibold">
+                <CheckCircleIcon size={11} />
+                INDEXED
               </span>
             </div>
 
             {selectedDocument.chunk_count !== undefined && (
-              <span className="text-zinc-400 text-[10px]">
+              <span className="text-zinc-500 text-[10px] font-medium">
                 {selectedDocument.chunk_count} Chunks
               </span>
             )}
@@ -90,10 +90,10 @@ export const SelectedDocument: React.FC<SelectedDocumentProps> = ({
       ) : (
         <div
           onClick={() => setIsPickerOpen(true)}
-          className="p-3 rounded-md border border-dashed border-zinc-800 hover:border-zinc-700 bg-zinc-900/30 cursor-pointer transition-colors text-center space-y-1"
+          className="p-3 rounded-lg border border-dashed border-zinc-300 hover:border-zinc-600 bg-white/40 cursor-pointer transition-colors text-center space-y-1 shadow-sm"
         >
-          <div className="text-xs font-medium text-zinc-400 flex items-center justify-center gap-1.5">
-            <ShieldIcon size={13} className="text-blue-400" />
+          <div className="text-xs font-bold text-zinc-800 flex items-center justify-center gap-1.5">
+            <ShieldIcon size={13} className="text-zinc-900" />
             <span>All Repository Documents</span>
           </div>
           <p className="text-[10px] text-zinc-500 font-mono">
@@ -134,21 +134,21 @@ export const SelectedDocument: React.FC<SelectedDocumentProps> = ({
               placeholder="Filter available documents..."
               value={searchFilter}
               onChange={(e) => setSearchFilter(e.target.value)}
-              className="w-full rounded-md border border-zinc-800 bg-zinc-900 px-3 py-2 text-xs text-zinc-100 placeholder-zinc-500 focus:outline-none focus:border-blue-500"
+              className="w-full rounded-md border border-zinc-300 bg-white/90 px-3 py-2 text-xs text-zinc-900 placeholder-zinc-400 focus:outline-none focus:border-zinc-950"
             />
 
-            <div className="max-h-64 overflow-y-auto space-y-1.5 divide-y divide-zinc-800/40">
+            <div className="max-h-64 overflow-y-auto space-y-1 divide-y divide-zinc-200/60">
               {filteredDocuments.map((doc) => (
                 <div
                   key={doc.id}
                   onClick={() => handleChoose(doc)}
-                  className="p-2.5 rounded-md hover:bg-zinc-800/50 cursor-pointer transition-colors flex items-center justify-between gap-3 text-xs"
+                  className="p-2.5 rounded-lg hover:bg-zinc-100 cursor-pointer transition-colors flex items-center justify-between gap-3 text-xs"
                 >
                   <div className="min-w-0">
-                    <p className="font-medium text-zinc-200 truncate font-mono">
+                    <p className="font-bold text-zinc-950 truncate font-mono">
                       {doc.filename}
                     </p>
-                    <p className="text-[10px] text-zinc-400 truncate">
+                    <p className="text-[10px] text-zinc-500 truncate">
                       {doc.title}
                     </p>
                   </div>
@@ -162,7 +162,7 @@ export const SelectedDocument: React.FC<SelectedDocumentProps> = ({
               ))}
 
               {filteredDocuments.length === 0 && (
-                <div className="py-6 text-center text-zinc-500 text-xs">
+                <div className="py-6 text-center text-zinc-500 text-xs font-mono">
                   No documents found matching your filter.
                 </div>
               )}

@@ -10,7 +10,6 @@ import {
   RotateCwIcon,
   PlusIcon
 } from '../icons';
-import { Button } from '../common/Button';
 import { Alert } from '../common/Alert';
 import { documentApi } from '../../services/documentApi';
 import { DocumentItem, SecurityClassification } from '../../types';
@@ -190,117 +189,116 @@ export const UploadDocument: React.FC<UploadDocumentProps> = ({
           onDragOver={handleDragOver}
           onDragLeave={handleDragLeave}
           onDrop={handleDrop}
-          className={`relative border border-dashed rounded-lg p-8 sm:p-10 text-center transition-colors bg-[#121215] ${
+          className={`relative border-2 border-dashed rounded-2xl p-8 sm:p-10 text-center transition-all bg-white/60 backdrop-blur-md ${
             dragActive
-              ? 'border-blue-500 bg-blue-500/5'
-              : 'border-zinc-800 hover:border-zinc-700 hover:bg-[#151519]'
+              ? 'border-neutral-900 bg-white/80'
+              : 'border-slate-300/80 hover:border-slate-800 hover:bg-white/75'
           }`}
         >
-          <div className="mx-auto w-10 h-10 rounded-full bg-zinc-900 border border-zinc-800 flex items-center justify-center text-blue-400 mb-3 shadow-sm">
-            <PlusIcon size={18} />
+          <div className="mx-auto w-11 h-11 rounded-2xl bg-neutral-900 flex items-center justify-center text-white mb-3 shadow-sm">
+            <PlusIcon size={20} />
           </div>
 
-          <div className="text-[10px] font-mono uppercase tracking-wider text-zinc-400 font-semibold mb-1">
-            ADD CONFIDENTIAL DOCUMENT
+          <div className="text-[10px] font-mono uppercase tracking-[0.25em] text-slate-500 font-bold mb-1">
+            CONFIDENTIAL DOCUMENT INGESTION
           </div>
 
-          <h3 className="text-xs font-semibold text-zinc-100 uppercase tracking-wider font-mono">
-            Upload Document
+          <h3 className="text-base font-black text-black uppercase tracking-tight font-sans">
+            Upload Document to Repository
           </h3>
           
-          <p className="text-xs text-zinc-400 mt-1">
-            Drop PDF here or browse files
+          <p className="text-xs text-slate-600 mt-1 font-medium">
+            Drag and drop your PDF here, or select from local storage
           </p>
 
-          <p className="text-[11px] text-zinc-500 font-mono mt-2 flex items-center justify-center gap-1.5">
-            <ShieldIcon size={12} className="text-emerald-400" />
-            <span>PDF • Supported formats (Files remain on local node)</span>
+          <p className="text-[11px] text-slate-500 font-mono mt-2.5 flex items-center justify-center gap-1.5 font-medium">
+            <ShieldIcon size={13} className="text-emerald-600" />
+            <span>PDF only • Files processed locally inside secure enclave</span>
           </p>
 
-          <div className="mt-4">
-            <Button
-              variant="secondary"
-              size="sm"
+          <div className="mt-5">
+            <button
               onClick={handleBrowseClick}
-              leftIcon={<UploadIcon size={14} />}
+              className="bg-white hover:bg-slate-50 border border-slate-300 text-slate-900 font-bold px-4 py-2 rounded-xl text-xs shadow-xs inline-flex items-center gap-2 transition-all"
             >
-              Browse Files
-            </Button>
+              <UploadIcon size={14} className="text-slate-700" />
+              <span>Browse Local Files</span>
+            </button>
           </div>
         </div>
       )}
 
       {/* STATE 2: FILE SELECTED / PARAMETERS */}
       {uploadState === 'selected' && selectedFile && (
-        <div className="bg-[#121215] border border-zinc-800/80 rounded-lg p-5 space-y-4">
-          <div className="flex items-start justify-between pb-3 border-b border-zinc-800/80">
+        <div className="kavach-glass-card p-6 space-y-4">
+          <div className="flex items-start justify-between pb-3 border-b border-slate-200/80">
             <div className="flex items-center space-x-3">
-              <div className="w-9 h-9 rounded-md bg-blue-600/10 border border-blue-500/20 flex items-center justify-center text-blue-400 shrink-0">
-                <FileTextIcon size={18} />
+              <div className="w-10 h-10 rounded-xl bg-slate-100 border border-slate-200 flex items-center justify-center text-slate-800 shrink-0 shadow-xs">
+                <FileTextIcon size={20} />
               </div>
               <div>
-                <h4 className="text-xs font-medium text-white truncate max-w-sm sm:max-w-md font-mono">
+                <h4 className="text-xs font-bold text-black truncate max-w-sm sm:max-w-md font-mono">
                   {selectedFile.name}
                 </h4>
-                <div className="flex items-center gap-2 text-[10px] font-mono text-zinc-400 mt-0.5">
+                <div className="flex items-center gap-2 text-[10px] font-mono text-slate-500 mt-0.5">
                   <span>{formatFileSize(selectedFile.size)}</span>
                   <span>·</span>
-                  <span className="text-blue-400">PDF Document</span>
+                  <span className="font-semibold text-slate-700">PDF Document</span>
                   <span>·</span>
-                  <span className="text-emerald-400">Validated</span>
+                  <span className="text-emerald-700 font-bold">Validated</span>
                 </div>
               </div>
             </div>
 
             <button
               onClick={resetForm}
-              className="p-1 rounded text-zinc-400 hover:text-zinc-200 hover:bg-zinc-800 transition-colors"
+              className="p-1 rounded-lg text-slate-400 hover:text-black hover:bg-slate-100 transition-colors"
               title="Cancel Selection"
             >
-              <XIcon size={15} />
+              <XIcon size={16} />
             </button>
           </div>
 
-          <form onSubmit={handleUploadSubmit} className="space-y-3.5">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-3.5">
+          <form onSubmit={handleUploadSubmit} className="space-y-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
-                <label className="block text-[10px] font-mono uppercase tracking-wider text-zinc-400 mb-1">
+                <label className="block text-[10px] font-mono uppercase tracking-wider text-slate-600 font-bold mb-1">
                   Document Title
                 </label>
                 <input
                   type="text"
                   value={title}
                   onChange={(e) => setTitle(e.target.value)}
-                  placeholder="e.g. System Overview Document"
-                  className="w-full rounded border border-zinc-800 bg-zinc-900/90 px-3 py-1.5 text-xs text-zinc-100 placeholder-zinc-500 focus:outline-none focus:border-blue-500 font-sans"
+                  placeholder="e.g. System Architecture Manual"
+                  className="w-full rounded-xl border border-slate-300 bg-white/90 px-3.5 py-2 text-xs text-slate-900 placeholder-slate-400 focus:outline-none focus:border-slate-900 font-sans shadow-xs"
                   required
                 />
               </div>
 
               <div>
-                <label className="block text-[10px] font-mono uppercase tracking-wider text-zinc-400 mb-1">
+                <label className="block text-[10px] font-mono uppercase tracking-wider text-slate-600 font-bold mb-1">
                   Department / Authority
                 </label>
                 <input
                   type="text"
                   value={department}
                   onChange={(e) => setDepartment(e.target.value)}
-                  placeholder="e.g. Operations"
-                  className="w-full rounded border border-zinc-800 bg-zinc-900/90 px-3 py-1.5 text-xs text-zinc-100 placeholder-zinc-500 focus:outline-none focus:border-blue-500 font-sans"
+                  placeholder="e.g. Enclave Operations"
+                  className="w-full rounded-xl border border-slate-300 bg-white/90 px-3.5 py-2 text-xs text-slate-900 placeholder-slate-400 focus:outline-none focus:border-slate-900 font-sans shadow-xs"
                   required
                 />
               </div>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-3.5">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
-                <label className="block text-[10px] font-mono uppercase tracking-wider text-zinc-400 mb-1">
+                <label className="block text-[10px] font-mono uppercase tracking-wider text-slate-600 font-bold mb-1">
                   Security Classification
                 </label>
                 <select
                   value={classification}
                   onChange={(e) => setClassification(e.target.value as SecurityClassification)}
-                  className="w-full rounded border border-zinc-800 bg-zinc-900/90 px-3 py-1.5 text-xs text-zinc-100 focus:outline-none focus:border-blue-500 font-mono"
+                  className="w-full rounded-xl border border-slate-300 bg-white/90 px-3.5 py-2 text-xs text-slate-900 font-semibold focus:outline-none focus:border-slate-900 font-mono shadow-xs"
                 >
                   <option value="TOP_SECRET">TOP_SECRET (Strict Clearance)</option>
                   <option value="SECRET">SECRET (Confidential Operations)</option>
@@ -311,32 +309,40 @@ export const UploadDocument: React.FC<UploadDocumentProps> = ({
               </div>
 
               <div>
-                <label className="block text-[10px] font-mono uppercase tracking-wider text-zinc-400 mb-1">
+                <label className="block text-[10px] font-mono uppercase tracking-wider text-slate-600 font-bold mb-1">
                   Description (Optional)
                 </label>
                 <input
                   type="text"
                   value={description}
                   onChange={(e) => setDescription(e.target.value)}
-                  placeholder="e.g. Operational reference manual"
-                  className="w-full rounded border border-zinc-800 bg-zinc-900/90 px-3 py-1.5 text-xs text-zinc-100 placeholder-zinc-500 focus:outline-none focus:border-blue-500 font-sans"
+                  placeholder="e.g. Technical engineering specifications"
+                  className="w-full rounded-xl border border-slate-300 bg-white/90 px-3.5 py-2 text-xs text-slate-900 placeholder-slate-400 focus:outline-none focus:border-slate-900 font-sans shadow-xs"
                 />
               </div>
             </div>
 
-            <div className="pt-3 border-t border-zinc-800/80 flex items-center justify-between">
-              <span className="text-[10px] font-mono text-zinc-500 flex items-center gap-1.5">
-                <ShieldIcon size={12} className="text-emerald-400" />
-                <span>Local pgvector indexing (384-d)</span>
+            <div className="pt-3 border-t border-slate-200/80 flex items-center justify-between">
+              <span className="text-[10px] font-mono text-slate-500 flex items-center gap-1.5 font-medium">
+                <ShieldIcon size={13} className="text-emerald-600" />
+                <span>Local pgvector indexing (384-d embeddings)</span>
               </span>
 
-              <div className="flex items-center space-x-2">
-                <Button variant="ghost" size="sm" type="button" onClick={resetForm}>
+              <div className="flex items-center space-x-2.5">
+                <button
+                  type="button"
+                  onClick={resetForm}
+                  className="px-3.5 py-2 rounded-xl text-xs font-bold text-slate-700 hover:text-black hover:bg-slate-100 transition-colors"
+                >
                   Cancel
-                </Button>
-                <Button variant="primary" size="sm" type="submit" leftIcon={<UploadIcon size={14} />}>
-                  Upload
-                </Button>
+                </button>
+                <button
+                  type="submit"
+                  className="px-4 py-2 rounded-xl text-xs font-bold bg-neutral-900 hover:bg-black text-white shadow-xs flex items-center gap-2 transition-all"
+                >
+                  <UploadIcon size={14} />
+                  <span>Start Ingestion</span>
+                </button>
               </div>
             </div>
           </form>
@@ -345,26 +351,26 @@ export const UploadDocument: React.FC<UploadDocumentProps> = ({
 
       {/* STATE 3: PROCESSING PIPELINE */}
       {uploadState === 'uploading' && (
-        <div className="bg-[#121215] border border-blue-500/30 rounded-lg p-6 text-center space-y-4 shadow-sm">
-          <div className="w-9 h-9 rounded-full bg-blue-500/10 border border-blue-500/30 flex items-center justify-center text-blue-400 mx-auto">
-            <RotateCwIcon size={18} className="animate-spin" />
+        <div className="kavach-glass-card border border-blue-200 p-8 text-center space-y-4 shadow-sm">
+          <div className="w-10 h-10 rounded-full bg-blue-100 border border-blue-200 flex items-center justify-center text-blue-700 mx-auto shadow-xs">
+            <RotateCwIcon size={20} className="animate-spin" />
           </div>
 
           <div>
-            <h4 className="text-xs font-semibold text-white uppercase font-mono tracking-wider">
+            <h4 className="text-sm font-bold text-slate-900 uppercase font-mono tracking-wider">
               Processing Document
             </h4>
-            <p className="text-[11px] text-zinc-400 mt-0.5 font-mono">
-              Extracting text and generating dense vector embeddings in pgvector...
+            <p className="text-xs text-slate-600 mt-1 font-sans">
+              Extracting text, chunking, and computing embeddings in local vector store...
             </p>
           </div>
 
-          <div className="flex items-center justify-center space-x-3 text-xs font-mono pt-2 text-zinc-500">
-            <span className="text-emerald-400 font-medium">FILE</span>
+          <div className="flex items-center justify-center space-x-3 text-xs font-mono pt-2 text-slate-500 font-semibold">
+            <span className="text-emerald-700">FILE</span>
             <span>→</span>
-            <span className="text-blue-400 font-medium">UPLOADING</span>
+            <span className="text-blue-700">UPLOADING</span>
             <span>→</span>
-            <span>PROCESSING</span>
+            <span className="text-slate-900 animate-pulse">PROCESSING</span>
             <span>→</span>
             <span>INDEXED</span>
           </div>
@@ -373,77 +379,83 @@ export const UploadDocument: React.FC<UploadDocumentProps> = ({
 
       {/* STATE 4: SUCCESS */}
       {uploadState === 'success' && uploadedDoc && (
-        <div className="bg-[#121215] border border-emerald-500/30 rounded-lg p-5 space-y-3">
+        <div className="bg-emerald-50/90 backdrop-blur-md border border-emerald-200 rounded-2xl p-5 space-y-3 shadow-xs">
           <div className="flex items-start space-x-3">
-            <div className="w-8 h-8 rounded bg-emerald-500/10 border border-emerald-500/30 flex items-center justify-center text-emerald-400 shrink-0">
-              <CheckCircleIcon size={18} />
+            <div className="w-9 h-9 rounded-xl bg-emerald-100 border border-emerald-300 flex items-center justify-center text-emerald-700 shrink-0 shadow-xs">
+              <CheckCircleIcon size={20} />
             </div>
             <div className="flex-1 min-w-0">
-              <h4 className="text-xs font-semibold text-white font-mono uppercase tracking-wider">
+              <h4 className="text-xs font-bold text-emerald-950 font-mono uppercase tracking-wider">
                 Document Indexed Successfully
               </h4>
-              <p className="text-xs text-zinc-300 mt-0.5">
-                <strong className="text-white font-medium">{uploadedDoc.title}</strong> is now registered and indexed.
+              <p className="text-xs text-emerald-900 mt-0.5">
+                <strong className="font-bold">{uploadedDoc.title}</strong> is now registered and indexed.
               </p>
             </div>
           </div>
 
-          <div className="flex items-center justify-center space-x-3 text-xs font-mono py-1.5 bg-zinc-900/60 rounded border border-zinc-800">
-            <span className="text-emerald-400">FILE</span>
-            <span className="text-zinc-600">→</span>
-            <span className="text-emerald-400">UPLOADING</span>
-            <span className="text-zinc-600">→</span>
-            <span className="text-emerald-400">PROCESSING</span>
-            <span className="text-zinc-600">→</span>
-            <span className="text-emerald-400 font-semibold">INDEXED</span>
+          <div className="flex items-center justify-center space-x-3 text-xs font-mono py-2 bg-white/70 rounded-xl border border-emerald-200">
+            <span className="text-emerald-700 font-bold">FILE</span>
+            <span className="text-slate-400">→</span>
+            <span className="text-emerald-700 font-bold">UPLOADING</span>
+            <span className="text-slate-400">→</span>
+            <span className="text-emerald-700 font-bold">PROCESSING</span>
+            <span className="text-slate-400">→</span>
+            <span className="text-emerald-800 font-extrabold">INDEXED</span>
           </div>
 
           <div className="flex items-center justify-end space-x-2 pt-1">
-            <Button variant="outline" size="sm" type="button" onClick={resetForm}>
+            <button
+              type="button"
+              onClick={resetForm}
+              className="px-3.5 py-1.5 rounded-xl border border-slate-300 text-xs font-bold text-slate-800 hover:bg-white transition-colors"
+            >
               Upload Another
-            </Button>
-            <Button
-              variant="primary"
-              size="sm"
+            </button>
+            <button
               type="button"
               onClick={() => navigate(`/documents/${uploadedDoc.id}`)}
+              className="px-4 py-1.5 rounded-xl bg-neutral-900 hover:bg-black text-white text-xs font-bold shadow-xs transition-colors"
             >
               View Document Details
-            </Button>
+            </button>
           </div>
         </div>
       )}
 
-      {/* STATE 5: FAILED */}
+      {/* STATE 5: FAILED matching reference screenshot */}
       {uploadState === 'failed' && (
-        <div className="bg-[#121215] border border-rose-500/30 rounded-lg p-5 space-y-3">
-          <div className="flex items-start space-x-3">
-            <div className="w-8 h-8 rounded bg-rose-500/10 border border-rose-500/30 flex items-center justify-center text-rose-400 shrink-0">
-              <AlertCircleIcon size={18} />
+        <div className="bg-rose-50/90 backdrop-blur-md border border-rose-200 rounded-2xl p-5 space-y-3 shadow-xs">
+          <div className="flex items-start space-x-3.5">
+            <div className="w-10 h-10 rounded-full bg-rose-100 border border-rose-300 flex items-center justify-center text-rose-700 shrink-0 shadow-xs">
+              <AlertCircleIcon size={20} />
             </div>
             <div className="flex-1">
-              <h4 className="text-xs font-semibold text-rose-300 font-mono uppercase tracking-wider">
-                Document Ingestion Failed
+              <h4 className="text-xs font-bold text-rose-900 font-mono uppercase tracking-wider">
+                DOCUMENT INGESTION FAILED
               </h4>
-              <p className="text-xs text-rose-400 mt-0.5">
-                {uploadError || 'An error occurred while processing the document in local storage.'}
+              <p className="text-xs text-rose-800 mt-1 font-medium leading-relaxed">
+                {uploadError || 'An error occurred while processing the document.'}
               </p>
             </div>
           </div>
 
-          <div className="flex items-center justify-end space-x-2 pt-1">
-            <Button variant="ghost" size="sm" type="button" onClick={resetForm}>
-              Cancel
-            </Button>
-            <Button
-              variant="danger"
-              size="sm"
+          <div className="flex items-center justify-end space-x-2.5 pt-1">
+            <button
               type="button"
-              leftIcon={<RotateCwIcon size={14} />}
-              onClick={() => handleUploadSubmit()}
+              onClick={resetForm}
+              className="px-3.5 py-1.5 rounded-xl text-xs font-bold text-slate-700 hover:text-black hover:bg-rose-100/60 transition-colors"
             >
-              Retry
-            </Button>
+              Cancel
+            </button>
+            <button
+              type="button"
+              onClick={() => handleUploadSubmit()}
+              className="px-4 py-1.5 rounded-xl bg-rose-700 hover:bg-rose-800 text-white text-xs font-bold shadow-xs flex items-center gap-1.5 transition-colors"
+            >
+              <RotateCwIcon size={13} />
+              <span>Retry</span>
+            </button>
           </div>
         </div>
       )}

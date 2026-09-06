@@ -55,7 +55,13 @@ def query(
     # answer_query), which risked the context/citation check being built
     # from a different chunk set than the threshold check saw.
     try:
-        ranked_chunks = search_with_rerank(db, request.query, top_k=request.top_k, rerank=True)
+        ranked_chunks = search_with_rerank(
+            db,
+            request.query,
+            top_k=request.top_k,
+            rerank=True,
+            document_id=request.document_id,
+        )
     except RetrievalError as exc:
         raise HTTPException(status.HTTP_400_BAD_REQUEST, str(exc)) from exc
 
