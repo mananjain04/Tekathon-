@@ -1,37 +1,24 @@
-# Python
-__pycache__/
-*.py[cod]
-*.pyo
+# Logs
+logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+lerna-debug.log*
 
-# Virtual environment
-venv/
-.venv/
+node_modules
+dist
+dist-ssr
+*.local
 
-# Environment variables
-.env
-
-# IDE
-.vscode/
-.idea/
-
-# OS
+# Editor directories and files
+.vscode/*
+!.vscode/extensions.json
+.idea
 .DS_Store
-Thumbs.db
-
-# Storage
-backend/storage/*
-!backend/storage/.gitkeep
-
-# Local LLM model files (never committed -- see backend/docs/PHASE5.md)
-*.gguf
-
-# Temporary files & test caches
-~$*
-.pytest_cache/
-backend/.pytest_cache/
-RAG_Chatbot/
-
-# Frontend
-frontend/node_modules/
-frontend/dist/
-frontend/.env.local
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
